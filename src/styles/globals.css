@@ -1,0 +1,212 @@
+/* =============================================================================
+   AquaGround AI — Light Enterprise Design System
+   Inspired by: Google Cloud Console · ArcGIS Online · Microsoft Fabric · Figma
+   ============================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap');
+
+@import "tailwindcss";
+
+/* ── Design Tokens ────────────────────────────────────────────────────────── */
+@theme {
+  /* Surface background matching #F8FAFC (Slate-50) */
+  --color-surface-page:    #F8FAFC;
+  --color-surface-card:    #FFFFFF;
+  --color-surface-sidebar: #FFFFFF;
+  --color-border:          #E2E8F0;
+  --color-border-strong:   #CBD5E1;
+
+  /* Primary Accent — Government Blue */
+  --color-primary-700: #1D4ED8;
+  --color-primary-600: #2563EB;
+  --color-primary-500: #3B82F6;
+  --color-primary-100: #DBEAFE;
+  --color-primary-50:  #EFF6FF;
+
+  /* Typography */
+  --color-text-primary:   #0F172A;
+  --color-text-secondary: #334155;
+  --color-text-muted:     #64748B;
+  --color-text-disabled:  #94A3B8;
+
+  /* Semantics */
+  --color-critical:    #EF4444;
+  --color-critical-bg: #FEF2F2;
+  --color-high:        #F97316;
+  --color-high-bg:     #FFF7ED;
+  --color-moderate:    #3B82F6;
+  --color-moderate-bg: #EFF6FF;
+  --color-low:         #10B981;
+  --color-low-bg:      #ECFDF5;
+  --color-stable:      #059669;
+  --color-stable-bg:   #ECFDF5;
+  --color-offline:     #64748B;
+  --color-offline-bg:  #F8FAFC;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'Roboto Mono', monospace;
+}
+
+/* ── CSS Variables ────────────────────────────────────────────────────────── */
+:root {
+  --sidebar-width: 220px;
+  --sidebar-collapsed-width: 56px;
+  --topbar-height: 56px;
+  --card-radius: 8px;
+  --card-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --card-shadow-hover: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Base Styles ──────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 13.5px;
+  color-scheme: light;
+}
+
+body {
+  background-color: #F8FAFC;
+  color: #0F172A;
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* ── Scrollbars ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #F8FAFC; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+/* ── Cards ────────────────────────────────────────────────────────────────── */
+.card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.card-hover {
+  cursor: pointer;
+}
+.card-hover:hover {
+  box-shadow: var(--card-shadow-hover);
+  border-color: #CBD5E1;
+}
+
+/* ── Table Styling ────────────────────────────────────────────────────────── */
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.data-table th {
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748B;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #F1F5F9;
+  color: #334155;
+  font-size: 13px;
+}
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+.data-table tbody tr:hover td {
+  background: #F8FAFC;
+}
+
+/* ── Status Pill Badges ───────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2.5px 8px;
+  border-radius: 4px; /* clean rectangular style */
+  border: 1px solid transparent;
+}
+.badge-critical  { color: #DC2626; background: #FEF2F2; border-color: #FEE2E2; }
+.badge-high      { color: #EA580C; background: #FFF7ED; border-color: #FFEDD5; }
+.badge-moderate  { color: #2563EB; background: #EFF6FF; border-color: #DBEAFE; }
+.badge-low       { color: #059669; background: #ECFDF5; border-color: #D1FAE5; }
+.badge-stable    { color: #059669; background: #ECFDF5; border-color: #D1FAE5; }
+.badge-offline   { color: #475569; background: #F8FAFC; border-color: #E2E8F0; }
+.badge-info      { color: #0369A1; background: #F0F9FF; border-color: #E0F2FE; }
+.badge-pending   { color: #D97706; background: #FFFBEB; border-color: #FEF3C7; }
+.badge-approved  { color: #059669; background: #ECFDF5; border-color: #D1FAE5; }
+.badge-rejected  { color: #DC2626; background: #FEF2F2; border-color: #FEE2E2; }
+.badge-modified  { color: #2563EB; background: #EFF6FF; border-color: #DBEAFE; }
+
+/* ── Leaflet Controls & Tooltip Overrides ────────────────────────────────── */
+.leaflet-container { font-family: var(--font-sans) !important; }
+.leaflet-control-zoom {
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  border-radius: 6px !important;
+}
+.leaflet-control-zoom a {
+  background: #FFFFFF !important;
+  color: #334155 !important;
+  border: none !important;
+  font-size: 15px !important;
+  width: 30px !important;
+  height: 30px !important;
+  line-height: 30px !important;
+}
+.leaflet-control-zoom a:hover {
+  background: #F1F5F9 !important;
+  color: #1D4ED8 !important;
+}
+.leaflet-tooltip {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+  font-family: var(--font-sans) !important;
+  font-size: 12px !important;
+  padding: 8px 12px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ── Animations ───────────────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+  border-radius: 4px;
+}
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+/* ── Ripple ──────────────────────────────────────────────────────────────── */
+.ripple-container { position: relative; overflow: hidden; }
+.ripple {
+  position: absolute; border-radius: 50%;
+  background: rgba(37, 99, 235, 0.1);
+  transform: scale(0);
+  animation: rippleEffect 400ms linear;
+  pointer-events: none;
+}
+@keyframes rippleEffect { to { transform: scale(3.5); opacity: 0; } }
