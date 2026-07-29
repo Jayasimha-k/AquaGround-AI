@@ -6,7 +6,7 @@ load_dotenv()
 
 class Settings(BaseSettings):
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
-    gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-pro")
+    gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
     app_name: str = "AquaGround AI Backend"
     debug: bool = False
 
