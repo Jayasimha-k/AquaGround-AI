@@ -1,11 +1,11 @@
 // =============================================================================
-// DistrictPanel — Floating right panel when a district is selected on the map
+// DistrictPanel — Floating right inspector panel when a district is selected
 // =============================================================================
 
 import React from 'react';
 import {
-  X, MapPin, Activity, WifiOff, TrendingDown, TrendingUp,
-  Minus, Droplets, CloudRain, Brain, Lightbulb, AlertTriangle,
+  X, MapPin, Activity, TrendingDown, TrendingUp,
+  Minus, Droplets, Brain, AlertTriangle,
 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -29,152 +29,152 @@ export function DistrictPanel() {
 
   return (
     <div
-      className="absolute right-4 top-4 bottom-4 z-[999] w-80 flex flex-col bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden animate-[fadeInUp_0.2s_ease-out]"
+      style={{
+        position: 'absolute', top: '16px', right: '16px', bottom: '16px',
+        width: '340px', zIndex: 1002, background: '#FFFFFF',
+        border: '1px solid #E8EDF3', borderRadius: '14px',
+        boxShadow: '0 8px 32px rgba(15,23,42,0.15)',
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+      }}
     >
       {/* Header */}
-      <div className="p-4 border-b border-gray-100" style={{ borderLeft: `4px solid ${riskColor}` }}>
-        <div className="flex items-start justify-between">
+      <div style={{ padding: '18px 20px', borderBottom: '1px solid #F1F5F9', borderLeft: `4px solid ${riskColor}` }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            <h2 className="text-sm font-semibold text-gray-900">{district.name}</h2>
-            <div className="flex items-center gap-1 mt-0.5 text-xs text-gray-500">
-              <MapPin size={11} className="text-gray-400" />
+            <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0, lineHeight: 1.2 }}>
+              {district.name}
+            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
+              <MapPin size={12} color="#94A3B8" />
               {district.state}
             </div>
           </div>
           <button
             onClick={() => selectDistrict(null)}
-            className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+            style={{
+              padding: '6px', borderRadius: '8px', border: 'none', background: '#F8FAFC',
+              cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#F1F5F9')}
+            onMouseLeave={e => (e.currentTarget.style.background = '#F8FAFC')}
           >
             <X size={15} />
           </button>
         </div>
 
         {/* Health Score */}
-        <div className="mt-3 flex items-center gap-3 bg-gray-50 rounded-lg p-2.5 border border-gray-100">
-          <div className="relative w-12 h-12 shrink-0">
-            <svg viewBox="0 0 56 56" className="w-full h-full -rotate-90">
-              <circle cx="28" cy="28" r="22" fill="none" stroke="#E5E7EB" strokeWidth="4" />
+        <div style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '14px', background: '#F8FAFC', borderRadius: '10px', padding: '12px 14px', border: '1px solid #EEF2F7' }}>
+          <div style={{ width: '44px', height: '44px', position: 'relative', flexShrink: 0 }}>
+            <svg viewBox="0 0 56 56" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#E2E8F0" strokeWidth="4" />
               <circle
-                cx="28" cy="28" r="22"
-                fill="none"
-                stroke={riskColor}
-                strokeWidth="4"
+                cx="28" cy="28" r="22" fill="none" stroke={riskColor} strokeWidth="4"
+                strokeDasharray="138"
+                strokeDashoffset={138 - (138 * district.healthScore) / 100}
                 strokeLinecap="round"
-                strokeDasharray={`${2 * Math.PI * 22}`}
-                strokeDashoffset={`${2 * Math.PI * 22 * (1 - district.healthScore / 100)}`}
               />
             </svg>
-            <span
-              className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-800"
-            >
+            <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: '#0F172A' }}>
               {district.healthScore}
             </span>
           </div>
-          <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Health Status</p>
-            <div className="flex items-center gap-2 mt-1">
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase' }}>Health Status</span>
               <StatusBadge variant={district.riskLevel} size="sm" />
-              <span className="text-gray-300">|</span>
-              <div className="flex items-center gap-0.5 text-xs font-medium" style={{ color: district.trend === 'down' ? '#DC2626' : district.trend === 'up' ? '#059669' : '#4B5563' }}>
-                <TrendIcon size={11} />
-                <span className="capitalize">{district.trend}</span>
-              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <TrendIcon size={14} style={{ color: district.trend === 'down' ? '#EF4444' : '#10B981' }} />
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                {district.groundwaterDepth} m BGL
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Body content scrollable */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { label: 'GW Depth', value: `${district.groundwaterDepth} m BGL`, icon: Droplets, color: 'text-blue-600', bg: 'bg-blue-50' },
-            { label: 'Rainfall', value: `${district.rainfall} mm`, icon: CloudRain, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-            { label: 'Active DWLR', value: district.activeSensors.toString(), icon: Activity, color: 'text-green-600', bg: 'bg-green-50' },
-            { label: 'Offline DWLR', value: district.offlineSensors.toString(), icon: WifiOff, color: 'text-gray-500', bg: 'bg-gray-100' },
-          ].map(metric => (
-            <div key={metric.label} className="bg-gray-50 border border-gray-100 rounded-lg p-2.5">
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className={`p-1 rounded ${metric.bg} ${metric.color}`}>
-                  <metric.icon size={11} />
-                </span>
-                <span className="text-[10px] font-medium text-gray-500">{metric.label}</span>
-              </div>
-              <p className="text-sm font-semibold text-gray-800">{metric.value}</p>
-            </div>
-          ))}
+        {/* Telemetry Stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div style={{ background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '10px', padding: '12px 14px' }}>
+            <p style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', margin: 0 }}>Active DWLR</p>
+            <p style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginTop: '4px', margin: 0 }}>
+              {district.activeSensors} <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 500 }}>/ {district.totalSensors}</span>
+            </p>
+          </div>
+          <div style={{ background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '10px', padding: '12px 14px' }}>
+            <p style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', margin: 0 }}>Offline Nodes</p>
+            <p style={{ fontSize: '15px', fontWeight: 800, color: district.offlineSensors > 0 ? '#EF4444' : '#10B981', marginTop: '4px', margin: 0 }}>
+              {district.offlineSensors}
+            </p>
+          </div>
         </div>
 
-        {/* Extraction vs Recharge */}
-        <div className="bg-gray-50 border border-gray-100 rounded-lg p-3 space-y-2.5">
-          <h3 className="text-xs font-semibold text-gray-700">Water Balance (MCM/yr)</h3>
-          
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500 font-medium">Recharge</span>
-              <span className="text-green-700 font-semibold">{district.rechargeRate} MCM</span>
+        {/* Water Balance */}
+        <div style={{ background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '10px', padding: '14px' }}>
+          <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px 0' }}>
+            Water Balance (MCM/yr)
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
+                <span style={{ color: '#64748B', fontWeight: 500 }}>Recharge</span>
+                <span style={{ fontWeight: 700, color: '#10B981' }}>{district.rechargeRate} MCM</span>
+              </div>
+              <div style={{ height: '5px', background: '#E2E8F0', borderRadius: '99px', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${Math.min(100, (district.rechargeRate / 10) * 100)}%`, background: '#10B981', borderRadius: '99px' }} />
+              </div>
             </div>
-            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-              <div className="h-full bg-green-600 rounded-full" style={{ width: `${Math.min(100, (district.rechargeRate / 15) * 100)}%` }} />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500 font-medium">Extraction</span>
-              <span className="text-red-600 font-semibold">{district.extractionRate} MCM</span>
-            </div>
-            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-              <div className="h-full bg-red-600 rounded-full" style={{ width: `${Math.min(100, (district.extractionRate / 15) * 100)}%` }} />
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
+                <span style={{ color: '#64748B', fontWeight: 500 }}>Extraction</span>
+                <span style={{ fontWeight: 700, color: '#EF4444' }}>{district.extractionRate} MCM</span>
+              </div>
+              <div style={{ height: '5px', background: '#E2E8F0', borderRadius: '99px', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${Math.min(100, (district.extractionRate / 10) * 100)}%`, background: '#EF4444', borderRadius: '99px' }} />
+              </div>
             </div>
           </div>
         </div>
 
         {/* 30-Day Trend Chart */}
-        <div className="border border-gray-100 rounded-lg p-3">
-          <h3 className="text-xs font-semibold text-gray-700 mb-2">Groundwater Trend (30-day)</h3>
-          <WaterLevelChart
-            labels={district.waterLevelHistory.slice(-10).map((_, i) => `D-${10 - i}`)}
-            depthData={district.waterLevelHistory.slice(-10).map(r => r.depth)}
-            height={100}
-          />
+        <div>
+          <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px 0' }}>
+            Groundwater Trend (30-day)
+          </p>
+          <div style={{ background: '#FFFFFF', border: '1px solid #EEF2F7', borderRadius: '10px', padding: '10px' }}>
+            <WaterLevelChart
+              labels={district.waterLevelHistory.map((_, i) => `D-${30 - i}`)}
+              depthData={district.waterLevelHistory.map(h => h.depth)}
+              height={140}
+            />
+          </div>
         </div>
 
-        {/* Recent Alerts */}
+        {/* Active Alerts */}
         {districtAlerts.length > 0 && (
-          <div className="space-y-1.5">
-            <h3 className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-              <AlertTriangle size={12} className="text-amber-500" />
-              Active Alerts ({districtAlerts.length})
-            </h3>
-            <div className="space-y-1.5">
-              {districtAlerts.slice(0, 2).map(alert => (
-                <div key={alert.id} className={`p-2.5 rounded border text-xs ${
-                  alert.severity === 'critical' ? 'bg-red-50 border-red-100 text-red-800' :
-                  alert.severity === 'warning' ? 'bg-amber-50 border-amber-100 text-amber-800' :
-                  'bg-blue-50 border-blue-100 text-blue-800'
-                }`}>
-                  <p className="font-semibold">{alert.type}</p>
-                  <p className="text-gray-600 mt-0.5 leading-snug">{alert.message}</p>
-                  <p className="text-[10px] text-gray-400 mt-1">
-                    {formatDistanceToNow(new Date(alert.timestamp), { addSuffix: true })}
-                  </p>
+          <div>
+            <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <AlertTriangle size={12} color="#EF4444" /> Active Anomalies ({districtAlerts.length})
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {districtAlerts.map(alert => (
+                <div key={alert.id} style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderLeft: '3px solid #EF4444', borderRadius: '8px', padding: '10px 12px' }}>
+                  <p style={{ fontSize: '12px', fontWeight: 700, color: '#991B1B', margin: '0 0 3px 0' }}>{alert.type}</p>
+                  <p style={{ fontSize: '11.5px', color: '#7F1D1D', margin: 0, lineHeight: 1.4 }}>{alert.message}</p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Decision Support Placeholder */}
-        <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-3">
-          <div className="flex items-center gap-1.5 mb-1">
-            <Brain size={13} className="text-blue-700" />
-            <h4 className="text-xs font-semibold text-blue-800">Forecast / Interventions</h4>
-          </div>
-          <p className="text-[11px] text-gray-600 leading-normal">
-            Automated recommendations for this region are managed in the <span className="font-semibold text-blue-700">Decision Support</span> workspace.
+        {/* Interventions hint */}
+        <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Brain size={16} color="#2563EB" style={{ flexShrink: 0 }} />
+          <p style={{ fontSize: '11.5px', color: '#1D4ED8', lineHeight: 1.5, margin: 0, fontWeight: 500 }}>
+            Automated recommendations for this region are managed in the <strong>Decision Support</strong> workspace.
           </p>
         </div>
 

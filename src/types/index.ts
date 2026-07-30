@@ -211,6 +211,7 @@ export interface AppState {
   activeLayers: LayerId[];
   notificationPanelOpen: boolean;
   unreadNotifications: number;
+  aiAssistantOpen: boolean;
   mapCenter: Coordinates;
   mapZoom: number;
   isLoading: boolean;

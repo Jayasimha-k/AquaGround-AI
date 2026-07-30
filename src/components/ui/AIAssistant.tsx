@@ -6,7 +6,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, X, Send, Copy, RefreshCcw, Trash2, Check, ArrowRight } from 'lucide-react';
 import { aiServiceClient, type ChatHistoryItem } from '@/services/aiService';
 import { MOCK_DISTRICTS, MOCK_RECOMMENDATIONS } from '@/constants/mockData';
-import { Button } from './Button';
+import { useApp } from '@/contexts/AppContext';
 
 interface ResponseData {
   question: string;
@@ -23,7 +23,10 @@ const EXAMPLE_QUESTIONS = [
 ];
 
 export function AIAssistant() {
-  const [isOpen, setIsOpen] = useState(false);
+  const { state, toggleAiAssistant, closeAiAssistant } = useApp();
+  const [localOpen, setLocalOpen] = useState(false);
+  const isOpen = state.aiAssistantOpen || localOpen;
+
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<ResponseData | null>(null);
@@ -36,6 +39,20 @@ export function AIAssistant() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [response, loading]);
+
+  const handleClose = () => {
+    setLocalOpen(false);
+    closeAiAssistant();
+  };
+
+  const handleToggle = () => {
+    if (isOpen) {
+      handleClose();
+    } else {
+      setLocalOpen(true);
+      toggleAiAssistant();
+    }
+  };
 
   const handleAsk = async (text: string, qType: string = 'chat') => {
     if (!text.trim()) return;
@@ -67,7 +84,6 @@ export function AIAssistant() {
         const res = await aiServiceClient.recommendationSummary(MOCK_RECOMMENDATIONS);
         replyText = res.response;
       } else {
-        // Standard chat
         const res = await aiServiceClient.chat(text, history);
         replyText = res.response;
       }
@@ -79,7 +95,6 @@ export function AIAssistant() {
         timestamp,
       });
 
-      // Append to local state history
       setHistory(prev => [
         ...prev,
         { role: 'user', content: text },
@@ -106,7 +121,6 @@ export function AIAssistant() {
 
   const handleRegenerate = () => {
     if (response) {
-      // Find matching type if possible, default to chat
       const match = EXAMPLE_QUESTIONS.find(q => q.text === response.question);
       handleAsk(response.question, match ? match.type : 'chat');
     }
@@ -119,73 +133,111 @@ export function AIAssistant() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[2000] select-none font-sans">
+    <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999, userSelect: 'none', fontFamily: 'inherit' }}>
       {/* Floating Trigger Button */}
       {!isOpen && (
         <button
-          onClick={() => setIsOpen(true)}
-          className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center transition-all hover:scale-105 cursor-pointer"
+          onClick={handleToggle}
+          style={{
+            width: '52px', height: '52px', borderRadius: '50%',
+            background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)',
+            color: '#FFFFFF', boxShadow: '0 8px 24px rgba(37,99,235,0.4)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: 'none', cursor: 'pointer', transition: 'transform 0.15s',
+          }}
           title="Launch AquaGround AI Assistant"
+          onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
+          onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
         >
-          <Sparkles size={18} />
+          <Sparkles size={20} color="#FFFFFF" />
         </button>
       )}
 
       {/* Assistant Chat Card */}
       {isOpen && (
-        <div className="w-80 h-[460px] bg-white border border-slate-200 rounded-lg shadow-xl flex flex-col overflow-hidden animate-[fadeInUp_0.18s_ease-out]">
-          
+        <div style={{
+          width: '350px', height: '500px', background: '#FFFFFF',
+          border: '1px solid #E8EDF3', borderRadius: '16px',
+          boxShadow: '0 12px 40px rgba(15,23,42,0.18)',
+          display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        }}>
           {/* Header */}
-          <div className="bg-slate-50 border-b border-slate-200 px-4 py-3.5 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="p-1 bg-blue-50 text-blue-700 rounded">
-                <Sparkles size={13} />
-              </span>
+          <div style={{
+            background: '#FAFBFC', borderBottom: '1px solid #F1F5F9',
+            padding: '14px 16px', display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', flexShrink: 0,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: 30, height: 30, borderRadius: '8px',
+                background: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Sparkles size={15} color="#2563EB" />
+              </div>
               <div>
-                <h3 className="text-xs font-bold text-slate-900 leading-none">AquaGround AI Assistant</h3>
-                <span className="text-[9px] text-slate-400 font-bold tracking-wide uppercase leading-none mt-1 inline-block">CGWB Support</span>
+                <h3 style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', margin: 0, lineHeight: 1.2 }}>
+                  AquaGround AI Assistant
+                </h3>
+                <span style={{ fontSize: '9.5px', color: '#94A3B8', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: '2px', display: 'block' }}>
+                  Gemini Hydrological LLM
+                </span>
               </div>
             </div>
             <button
-              onClick={() => setIsOpen(false)}
-              className="text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer"
+              onClick={handleClose}
+              style={{
+                padding: '6px', borderRadius: '8px', border: 'none',
+                background: '#F8FAFC', cursor: 'pointer', color: '#94A3B8',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#F1F5F9')}
+              onMouseLeave={e => (e.currentTarget.style.background = '#F8FAFC')}
             >
               <X size={15} />
             </button>
           </div>
 
           {/* Assistant Conversation Area */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             
             {response ? (
-              <div className="space-y-3.5">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {/* User query bubble */}
-                <div className="flex justify-end">
-                  <div className="bg-blue-50 border border-blue-100 text-blue-900 text-xs rounded px-3 py-2 max-w-[85%] font-medium">
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <div style={{
+                    background: '#EFF6FF', border: '1px solid #BFDBFE',
+                    color: '#1E3A8A', fontSize: '12.5px', borderRadius: '10px',
+                    padding: '10px 14px', maxWidth: '85%', fontWeight: 600, lineHeight: 1.4,
+                  }}>
                     {response.question}
                   </div>
                 </div>
 
                 {/* AI response bubble */}
-                <div className="space-y-1.5">
-                  <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">AquaGround AI</div>
-                  <div className="bg-slate-50 border border-slate-100 text-slate-700 text-xs rounded px-3.5 py-3 leading-relaxed whitespace-pre-line">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    AquaGround AI
+                  </span>
+                  <div style={{
+                    background: '#F8FAFC', border: '1px solid #EEF2F7',
+                    color: '#334155', fontSize: '12.5px', borderRadius: '12px',
+                    padding: '14px', lineHeight: 1.6, whiteSpace: 'pre-line', fontWeight: 500,
+                  }}>
                     {response.answer}
                   </div>
-                  <div className="flex items-center justify-between text-[10px] text-slate-400 px-1 pt-0.5">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10.5px', color: '#94A3B8', padding: '0 4px' }}>
                     <span>{response.timestamp}</span>
-                    <div className="flex items-center gap-2">
-                      <button onClick={handleCopy} className="hover:text-slate-700 flex items-center gap-0.5 cursor-pointer">
-                        {copied ? <Check size={11} className="text-green-600" /> : <Copy size={11} />}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <button onClick={handleCopy} style={{ border: 'none', background: 'none', color: '#64748B', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600 }}>
+                        {copied ? <Check size={11} color="#10B981" /> : <Copy size={11} />}
                         {copied ? 'Copied' : 'Copy'}
                       </button>
-                      <button onClick={handleRegenerate} className="hover:text-slate-700 flex items-center gap-0.5 cursor-pointer">
-                        <RefreshCcw size={11} />
-                        Retry
+                      <button onClick={handleRegenerate} style={{ border: 'none', background: 'none', color: '#64748B', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600 }}>
+                        <RefreshCcw size={11} /> Retry
                       </button>
-                      <button onClick={handleClear} className="hover:text-red-600 flex items-center gap-0.5 cursor-pointer">
-                        <Trash2 size={11} />
-                        Clear
+                      <button onClick={handleClear} style={{ border: 'none', background: 'none', color: '#EF4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600 }}>
+                        <Trash2 size={11} /> Clear
                       </button>
                     </div>
                   </div>
@@ -193,17 +245,28 @@ export function AIAssistant() {
               </div>
             ) : !loading ? (
               /* Preloaded Prompt suggestion board */
-              <div className="space-y-3 pt-2">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Suggested Inquiries</p>
-                <div className="space-y-2">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '4px' }}>
+                <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
+                  Suggested Hydrogeological Inquiries
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {EXAMPLE_QUESTIONS.map((q, idx) => (
                     <button
                       key={idx}
                       onClick={() => handleAsk(q.text, q.type)}
-                      className="w-full text-left bg-slate-50 hover:bg-blue-50/50 border border-slate-150 rounded p-2.5 text-xs text-slate-700 transition-colors flex items-center justify-between group cursor-pointer font-medium"
+                      style={{
+                        width: '100%', textAlign: 'left', background: '#F8FAFC',
+                        border: '1px solid #E8EDF3', borderRadius: '10px',
+                        padding: '10px 14px', fontSize: '12.5px', color: '#334155',
+                        cursor: 'pointer', transition: 'all 0.15s',
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        fontWeight: 600,
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#EFF6FF'; e.currentTarget.style.borderColor = '#BFDBFE'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#E8EDF3'; }}
                     >
-                      <span className="truncate pr-2">{q.text}</span>
-                      <ArrowRight size={11} className="text-slate-400 group-hover:translate-x-0.5 group-hover:text-blue-600 transition-all shrink-0" />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: '8px' }}>{q.text}</span>
+                      <ArrowRight size={12} color="#3B82F6" style={{ flexShrink: 0 }} />
                     </button>
                   ))}
                 </div>
@@ -212,23 +275,23 @@ export function AIAssistant() {
 
             {/* Shimmer loading spinner */}
             {loading && (
-              <div className="space-y-2">
-                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5 animate-pulse">
-                  <Sparkles size={11} className="text-blue-500 animate-spin" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ fontSize: '10.5px', color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Sparkles size={12} color="#2563EB" />
                   <span>AquaGround AI analyzing telemetry...</span>
                 </div>
-                <div className="bg-slate-50 border border-slate-100 rounded p-3 space-y-2">
-                  <div className="h-3 bg-slate-200 rounded w-full skeleton" />
-                  <div className="h-3 bg-slate-200 rounded w-[85%] skeleton" />
-                  <div className="h-3 bg-slate-200 rounded w-[60%] skeleton" />
+                <div style={{ background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div className="skeleton" style={{ height: '12px', width: '100%', borderRadius: '4px' }} />
+                  <div className="skeleton" style={{ height: '12px', width: '85%', borderRadius: '4px' }} />
+                  <div className="skeleton" style={{ height: '12px', width: '60%', borderRadius: '4px' }} />
                 </div>
               </div>
             )}
           </div>
 
           {/* Assistant Query Input bar */}
-          <div className="p-3 border-t border-slate-200 bg-white">
-            <div className="relative">
+          <div style={{ padding: '12px 14px', borderTop: '1px solid #F1F5F9', background: '#FFFFFF', flexShrink: 0 }}>
+            <div style={{ position: 'relative' }}>
               <input
                 type="text"
                 value={query}
@@ -236,14 +299,24 @@ export function AIAssistant() {
                 onKeyDown={e => e.key === 'Enter' && handleAsk(query, 'chat')}
                 placeholder="Ask AquaGround AI Assistant..."
                 disabled={loading}
-                className="w-full bg-slate-50 border border-slate-200 rounded pl-3 pr-9 py-2 text-xs text-slate-700 placeholder-slate-400 outline-none focus:border-blue-500/50 disabled:opacity-50"
+                style={{
+                  width: '100%', background: '#F8FAFC', border: '1px solid #E8EDF3',
+                  borderRadius: '10px', paddingLeft: '14px', paddingRight: '36px',
+                  paddingTop: '9px', paddingBottom: '9px', fontSize: '12.5px',
+                  color: '#1E293B', outline: 'none', fontFamily: 'inherit',
+                  boxSizing: 'border-box',
+                }}
               />
               <button
                 onClick={() => handleAsk(query, 'chat')}
                 disabled={loading || !query.trim()}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-700 disabled:opacity-30 cursor-pointer"
+                style={{
+                  position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', color: '#2563EB', cursor: 'pointer',
+                  opacity: loading || !query.trim() ? 0.3 : 1, display: 'flex',
+                }}
               >
-                <Send size={13} />
+                <Send size={15} />
               </button>
             </div>
           </div>

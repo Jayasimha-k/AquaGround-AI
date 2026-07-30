@@ -1,5 +1,5 @@
 // =============================================================================
-// LayerControl — Map layer toggle panel (Light Enterprise Theme)
+// LayerControl — Map layer toggle panel
 // =============================================================================
 
 import React, { useState } from 'react';
@@ -19,7 +19,6 @@ export function LayerControl() {
   const { state, toggleLayer } = useApp();
   const [open, setOpen] = useState(false);
 
-  // Group layers that exist in constants
   const grouped = MAP_LAYERS.reduce<Record<string, typeof MAP_LAYERS>>((acc, layer) => {
     if (!acc[layer.group]) acc[layer.group] = [];
     acc[layer.group].push(layer);
@@ -27,27 +26,43 @@ export function LayerControl() {
   }, {});
 
   return (
-    <div className="absolute top-4 right-4 z-[1000]">
+    <div style={{ position: 'relative' }}>
       {/* Toggle Button */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2 px-3 h-9 bg-white border border-gray-200 rounded-md text-gray-700 text-xs font-semibold hover:bg-gray-50 transition-colors shadow-sm cursor-pointer"
+        style={{
+          display: 'flex', alignItems: 'center', gap: '8px',
+          height: '32px', padding: '0 12px', background: '#FFFFFF',
+          border: '1px solid #E8EDF3', borderRadius: '8px',
+          color: '#334155', fontSize: '11.5px', fontWeight: 700,
+          cursor: 'pointer', boxShadow: '0 2px 8px rgba(15,23,42,0.06)',
+          transition: 'all 0.15s',
+        }}
       >
-        <Layers size={13} className="text-gray-500" />
-        Layers
-        <span className="bg-blue-50 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+        <Layers size={13} color="#2563EB" />
+        <span>Layers</span>
+        <span style={{
+          background: '#EFF6FF', color: '#1D4ED8', fontSize: '10px',
+          fontWeight: 800, padding: '2px 6px', borderRadius: '99px',
+          border: '1px solid #BFDBFE',
+        }}>
           {state.activeLayers.length}
         </span>
-        {open ? <ChevronUp size={12} className="text-gray-400" /> : <ChevronDown size={12} className="text-gray-400" />}
+        {open ? <ChevronUp size={12} color="#94A3B8" /> : <ChevronDown size={12} color="#94A3B8" />}
       </button>
 
       {/* Layer Panel */}
       {open && (
-        <div className="absolute top-full right-0 mt-1.5 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-1 text-gray-700 max-h-[350px] overflow-y-auto">
+        <div style={{
+          position: 'absolute', top: '100%', right: 0, marginTop: '6px',
+          width: '230px', background: '#FFFFFF', border: '1px solid #E8EDF3',
+          borderRadius: '12px', boxShadow: '0 8px 30px rgba(15,23,42,0.12)',
+          padding: '8px 0', zIndex: 1005, maxHeight: '360px', overflowY: 'auto',
+        }}>
           {Object.entries(grouped).map(([group, layers]) => (
-            <div key={group} className="border-b border-gray-100 last:border-0 pb-1 mb-1">
-              <div className="px-3 pt-2 pb-1">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+            <div key={group} style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '6px', marginBottom: '6px' }}>
+              <div style={{ padding: '6px 14px 4px' }}>
+                <p style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
                   {GROUP_LABELS[group]}
                 </p>
               </div>
@@ -57,22 +72,23 @@ export function LayerControl() {
                   <button
                     key={layer.id}
                     onClick={() => toggleLayer(layer.id as LayerId)}
-                    className={[
-                      'flex items-center gap-3 w-full px-3 py-1.5 text-xs transition-colors cursor-pointer',
-                      isActive
-                        ? 'text-blue-700 bg-blue-50/50 font-medium'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50',
-                    ].join(' ')}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '10px',
+                      width: '100%', padding: '7px 14px', fontSize: '12px',
+                      border: 'none', cursor: 'pointer', transition: 'background 0.15s',
+                      background: isActive ? '#EFF6FF' : 'transparent',
+                      color: isActive ? '#1D4ED8' : '#475569',
+                      fontWeight: isActive ? 600 : 500,
+                    }}
                   >
-                    {/* Toggle indicator */}
                     <span
-                      className="w-2 h-2 rounded-full shrink-0 transition-all"
                       style={{
+                        width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
                         background: isActive ? layer.color : 'transparent',
-                        border: `1.5px solid ${isActive ? layer.color : '#9CA3AF'}`,
+                        border: `1.5px solid ${isActive ? layer.color : '#94A3B8'}`,
                       }}
                     />
-                    <span className="flex-1 text-left">{layer.label}</span>
+                    <span style={{ flex: 1, textAlign: 'left' }}>{layer.label}</span>
                   </button>
                 );
               })}
@@ -87,25 +103,50 @@ export function LayerControl() {
 // ── MapToolbar ────────────────────────────────────────────────────────────────
 export function MapToolbar() {
   return (
-    <div className="absolute top-4 left-4 z-[1000] flex flex-col gap-1.5">
+    <div style={{
+      position: 'absolute', top: '16px', left: '16px', zIndex: 1001,
+      display: 'flex', flexDirection: 'column', gap: '8px',
+    }}>
       {/* Zoom controls */}
-      <div className="bg-white border border-gray-200 rounded-md overflow-hidden shadow-sm flex flex-col">
-        <button 
-          title="Zoom In" 
-          className="flex items-center justify-center w-8 h-8 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors text-sm font-semibold border-b border-gray-100 cursor-pointer"
+      <div style={{
+        background: '#FFFFFF', border: '1px solid #E8EDF3', borderRadius: '8px',
+        overflow: 'hidden', boxShadow: '0 2px 8px rgba(15,23,42,0.06)',
+        display: 'flex', flexDirection: 'column',
+      }}>
+        <button
+          title="Zoom In"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '32px', height: '32px', border: 'none', background: 'none',
+            color: '#334155', fontSize: '16px', fontWeight: 700, cursor: 'pointer',
+            borderBottom: '1px solid #F1F5F9',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#F8FAFC')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'none')}
         >
           +
         </button>
-        <button 
-          title="Zoom Out" 
-          className="flex items-center justify-center w-8 h-8 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors text-sm font-semibold cursor-pointer"
+        <button
+          title="Zoom Out"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '32px', height: '32px', border: 'none', background: 'none',
+            color: '#334155', fontSize: '16px', fontWeight: 700, cursor: 'pointer',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#F8FAFC')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'none')}
         >
           −
         </button>
       </div>
 
       {/* Compass */}
-      <div className="flex items-center justify-center w-8 h-8 bg-white border border-gray-200 rounded-md text-gray-500 text-xs font-semibold shadow-sm select-none">
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        width: '32px', height: '32px', background: '#FFFFFF', border: '1px solid #E8EDF3',
+        borderRadius: '8px', color: '#2563EB', fontSize: '11px', fontWeight: 800,
+        boxShadow: '0 2px 8px rgba(15,23,42,0.06)', userSelect: 'none',
+      }}>
         N
       </div>
     </div>

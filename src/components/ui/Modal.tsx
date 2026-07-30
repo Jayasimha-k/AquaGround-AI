@@ -16,7 +16,12 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-const SIZE_MAP = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl' };
+const SIZE_MAP: Record<string, string> = {
+  sm: '380px',
+  md: '520px',
+  lg: '680px',
+  xl: '860px',
+};
 
 export function Modal({ open, onClose, title, subtitle, children, footer, size = 'md' }: ModalProps) {
   useEffect(() => {
@@ -29,24 +34,54 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size =
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className={[
-        'relative bg-white rounded-xl border border-gray-200 shadow-xl w-full',
-        SIZE_MAP[size],
-      ].join(' ')}>
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '16px', background: 'rgba(15,23,42,0.4)',
+      backdropFilter: 'blur(3px)',
+    }}>
+      <div style={{ position: 'absolute', inset: 0 }} onClick={onClose} />
+      <div style={{
+        position: 'relative', background: '#FFFFFF', borderRadius: '16px',
+        border: '1px solid #E8EDF3', boxShadow: '0 20px 50px rgba(15,23,42,0.2)',
+        width: '100%', maxWidth: SIZE_MAP[size] || '520px', overflow: 'hidden',
+        display: 'flex', flexDirection: 'column', zIndex: 10000,
+      }}>
         {title && (
-          <div className="flex items-start justify-between p-5 border-b border-gray-200">
+          <div style={{
+            padding: '20px 24px', borderBottom: '1px solid #F1F5F9',
+            display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+            gap: '16px', background: '#FFFFFF',
+          }}>
             <div>
-              <h2 className="text-base font-semibold text-gray-900">{title}</h2>
-              {subtitle && <p className="mt-0.5 text-sm text-gray-500">{subtitle}</p>}
+              <h2 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0, lineHeight: 1.3 }}>{title}</h2>
+              {subtitle && <p style={{ fontSize: '12.5px', color: '#64748B', marginTop: '4px', margin: 0, fontWeight: 500 }}>{subtitle}</p>}
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose} icon={<X size={15} />} />
+            <button
+              onClick={onClose}
+              style={{
+                padding: '6px', borderRadius: '8px', border: 'none', background: '#F8FAFC',
+                cursor: 'pointer', color: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#F1F5F9')}
+              onMouseLeave={e => (e.currentTarget.style.background = '#F8FAFC')}
+            >
+              <X size={16} />
+            </button>
           </div>
         )}
-        <div className="p-5">{children}</div>
+
+        <div style={{ padding: '24px', flex: 1, overflowY: 'auto' }}>
+          {children}
+        </div>
+
         {footer && (
-          <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+            gap: '12px', padding: '16px 24px', borderTop: '1px solid #F1F5F9',
+            background: '#FAFBFC', flexShrink: 0,
+          }}>
             {footer}
           </div>
         )}
@@ -65,7 +100,7 @@ export function ConfirmDialog({ open, onClose, onConfirm, title, message, confir
   return (
     <Modal open={open} onClose={onClose} title={title} size="sm"
       footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button variant={confirmVariant} onClick={onConfirm} loading={loading}>{confirmLabel}</Button></>}>
-      <p className="text-sm text-gray-600 leading-relaxed">{message}</p>
+      <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.6, margin: 0 }}>{message}</p>
     </Modal>
   );
 }

@@ -35,7 +35,7 @@ const secondaryItems = [
 ];
 
 export function Sidebar() {
-  const { state, toggleSidebar } = useApp();
+  const { state, toggleSidebar, openAiAssistant } = useApp();
   const { sidebarCollapsed } = state;
   const location = useLocation();
   const sidebarRef = useRef<HTMLElement>(null);
@@ -178,7 +178,7 @@ export function Sidebar() {
             </p>
           )}
           <button
-            onClick={() => setRoadmapOpen(true)}
+            onClick={openAiAssistant}
             style={{
               display: 'flex', alignItems: 'center', gap: '10px',
               margin: '2px 10px', padding: sidebarCollapsed ? '10px 0' : '10px 14px',

@@ -10,7 +10,7 @@ import { useApp } from '@/contexts/AppContext';
 import { MOCK_DISTRICTS } from '@/constants/mockData';
 import {
   Search, RefreshCcw, MapPin, Grid, Layers,
-  Droplets, Activity, AlertTriangle, ShieldCheck
+  Droplets, Activity, AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
@@ -39,8 +39,8 @@ export function MapPage() {
   const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
     setSelectedState(val);
-    setSelectedDistrictId('all'); // reset district on state change
-    selectDistrict(null); // clear district side panel selection
+    setSelectedDistrictId('all');
+    selectDistrict(null);
   };
 
   // Handle District Dropdown Change
@@ -55,7 +55,7 @@ export function MapPage() {
     }
   };
 
-  // Toggle Risk Selection (Multi-select)
+  // Toggle Risk Selection
   const toggleRiskSelection = (risk: string) => {
     setSelectedRisks(prev =>
       prev.includes(risk) ? prev.filter(r => r !== risk) : [...prev, risk]
@@ -72,7 +72,6 @@ export function MapPage() {
       return;
     }
 
-    // Match against districts, states, and DWLR nodes
     const matches: string[] = [];
     MOCK_DISTRICTS.forEach(d => {
       if (d.name.toLowerCase().includes(query.toLowerCase()) && !matches.includes(d.name)) {
@@ -91,13 +90,11 @@ export function MapPage() {
     setSearchQuery(val);
     setSearchSuggestions([]);
 
-    // Check if it is a state
     if (MONITORED_STATES.includes(val)) {
       setSelectedState(val);
       setSelectedDistrictId('all');
       selectDistrict(null);
     } else {
-      // Check if it is a district
       const match = MOCK_DISTRICTS.find(d => d.name.toLowerCase() === val.toLowerCase());
       if (match) {
         setSelectedState(match.state);
@@ -107,7 +104,7 @@ export function MapPage() {
     }
   };
 
-  // Reset all filters to original state
+  // Reset all filters
   const handleResetFilters = () => {
     setSelectedState('all');
     setSelectedDistrictId('all');
@@ -117,7 +114,7 @@ export function MapPage() {
     selectDistrict(null);
   };
 
-  // ── DYNAMIC STATISTICS CALCULATION ──────────────────────────────────────────
+  // Filtered metrics calculation
   const filteredMetrics = useMemo(() => {
     const matched = MOCK_DISTRICTS.filter(d => {
       if (selectedState !== 'all' && d.state !== selectedState) return false;
@@ -150,29 +147,49 @@ export function MapPage() {
   }, [selectedState, selectedDistrictId, selectedRisks, searchQuery]);
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-slate-50 flex flex-col">
+    <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', background: '#EEF2F7', display: 'flex', flexDirection: 'column' }}>
 
-      {/* ── TOP FLOATING CONTROL BAR: Autocomplete Search & Filters ── */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1001] w-[calc(100%-32px)] max-w-4xl bg-white border border-slate-200 shadow-lg rounded-md p-3 select-none flex flex-col md:flex-row items-center gap-3">
-        {/* Autocomplete Search input */}
-        <div className="relative w-full md:w-56">
-          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+      {/* ── TOP FILTER CONTROL BAR ── */}
+      <div style={{
+        position: 'absolute', top: '16px', left: '60px', right: '380px', zIndex: 1001,
+        background: '#FFFFFF', border: '1px solid #E8EDF3', borderRadius: '12px',
+        boxShadow: '0 4px 20px rgba(15,23,42,0.08)', padding: '8px 14px',
+        display: 'flex', alignItems: 'center', gap: '10px', overflowX: 'auto',
+      }}>
+        {/* Search */}
+        <div style={{ position: 'relative', width: '170px' }}>
+          <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
           <input
             type="text"
             value={searchQuery}
             onChange={handleSearchChange}
             placeholder="Search state, district..."
-            className="w-full bg-slate-50 border border-slate-200 rounded pl-8 pr-2.5 py-1.5 text-xs text-slate-700 placeholder-slate-400 outline-none focus:border-blue-500/50"
+            style={{
+              width: '100%', background: '#F8FAFC', border: '1px solid #E2E8F0',
+              borderRadius: '8px', paddingLeft: '32px', paddingRight: '10px',
+              paddingTop: '6px', paddingBottom: '6px', fontSize: '12px', color: '#1E293B',
+              outline: 'none', fontFamily: 'inherit',
+            }}
           />
           {searchSuggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded shadow-md overflow-hidden z-[1002]">
+            <div style={{
+              position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '4px',
+              background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.12)', overflow: 'hidden', zIndex: 1002,
+            }}>
               {searchSuggestions.map((s, i) => (
                 <div
                   key={i}
                   onClick={() => handleSelectSuggestion(s)}
-                  className="px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 cursor-pointer flex items-center gap-1.5"
+                  style={{
+                    padding: '8px 12px', fontSize: '12px', color: '#334155',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                    borderBottom: '1px solid #F1F5F9',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#F8FAFC')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
-                  <MapPin size={11} className="text-slate-400" />
+                  <MapPin size={11} color="#94A3B8" />
                   {s}
                 </div>
               ))}
@@ -180,49 +197,67 @@ export function MapPage() {
           )}
         </div>
 
-        {/* State Dropdown Selector */}
-        <div className="w-full md:w-44">
-          <select
-            value={selectedState}
-            onChange={handleStateChange}
-            className="w-full bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-xs text-slate-600 font-semibold outline-none cursor-pointer focus:border-blue-500/50"
-          >
-            <option value="all">All States</option>
-            {MONITORED_STATES.map(s => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-        </div>
+        {/* State Select */}
+        <select
+          value={selectedState}
+          onChange={handleStateChange}
+          style={{
+            background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px',
+            padding: '6px 10px', fontSize: '12px', fontWeight: 600, color: '#334155',
+            outline: 'none', cursor: 'pointer', fontFamily: 'inherit', minWidth: '130px',
+          }}
+        >
+          <option value="all">All States</option>
+          {MONITORED_STATES.map(s => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
 
-        {/* District Dropdown Selector */}
-        <div className="w-full md:w-44">
-          <select
-            value={selectedDistrictId}
-            onChange={handleDistrictChange}
-            disabled={selectedState === 'all'}
-            className="w-full bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-xs text-slate-600 font-semibold outline-none cursor-pointer focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <option value="all">All Districts</option>
-            {availableDistricts.map(d => (
-              <option key={d.id} value={d.id}>{d.name}</option>
-            ))}
-          </select>
-        </div>
+        {/* District Select */}
+        <select
+          value={selectedDistrictId}
+          onChange={handleDistrictChange}
+          disabled={selectedState === 'all'}
+          style={{
+            background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px',
+            padding: '6px 10px', fontSize: '12px', fontWeight: 600, color: '#334155',
+            outline: 'none', cursor: selectedState === 'all' ? 'not-allowed' : 'pointer',
+            opacity: selectedState === 'all' ? 0.5 : 1, fontFamily: 'inherit', minWidth: '130px',
+          }}
+        >
+          <option value="all">All Districts</option>
+          {availableDistricts.map(d => (
+            <option key={d.id} value={d.id}>{d.name}</option>
+          ))}
+        </select>
 
-        {/* Risk Filter Badges */}
-        <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto">
+        {/* Divider */}
+        <div style={{ height: '20px', width: '1px', background: '#E2E8F0' }} />
+
+        {/* Risk Badges */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           {['critical', 'high', 'moderate', 'stable'].map(risk => {
             const isSelected = selectedRisks.includes(risk);
+            const colors: Record<string, { activeBg: string; activeText: string }> = {
+              critical: { activeBg: '#EF4444', activeText: '#FFFFFF' },
+              high:     { activeBg: '#F97316', activeText: '#FFFFFF' },
+              moderate: { activeBg: '#3B82F6', activeText: '#FFFFFF' },
+              stable:   { activeBg: '#10B981', activeText: '#FFFFFF' },
+            };
+            const c = colors[risk];
             return (
               <button
                 key={risk}
                 onClick={() => toggleRiskSelection(risk)}
-                className={[
-                  'px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider transition-colors cursor-pointer border',
-                  isSelected
-                    ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-500 border-slate-200'
-                ].join(' ')}
+                style={{
+                  padding: '5px 10px', fontSize: '10.5px', fontWeight: 700,
+                  borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.04em',
+                  cursor: 'pointer', transition: 'all 0.15s',
+                  background: isSelected ? c.activeBg : '#F8FAFC',
+                  color: isSelected ? c.activeText : '#64748B',
+                  border: `1px solid ${isSelected ? c.activeBg : '#E2E8F0'}`,
+                  boxShadow: isSelected ? `0 2px 6px ${c.activeBg}40` : 'none',
+                }}
               >
                 {risk}
               </button>
@@ -230,71 +265,99 @@ export function MapPage() {
           })}
         </div>
 
-        {/* Reset Filter Button */}
+        {/* Reset Button */}
         <Button
           variant="secondary"
           size="sm"
           onClick={handleResetFilters}
           icon={<RefreshCcw size={11} />}
-          className="w-full md:w-auto text-[11px] py-1 px-2.5 shadow-none"
+          style={{ fontSize: '11px', padding: '4px 10px' }}
         >
           Reset
         </Button>
       </div>
 
-      {/* ── TOP RIGHT: DYNAMIC STATISTICS OVERLAY ──────────────────── */}
-      <div className="absolute top-20 right-4 z-[1000] w-64 bg-white border border-slate-200 shadow-md rounded-md p-3 select-none pointer-events-none animate-[fadeInUp_0.15s_ease-out]">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2.5">Triage Scope Diagnostics</p>
-        <div className="space-y-2">
+      {/* ── TOP RIGHT CONTROLS: Basemap Switcher & Layer Selector ── */}
+      <div style={{
+        position: 'absolute', top: '16px', right: '16px', zIndex: 1001,
+        display: 'flex', alignItems: 'center', gap: '10px',
+      }}>
+        {/* Basemap Switcher */}
+        <div style={{
+          background: '#FFFFFF', border: '1px solid #E8EDF3', borderRadius: '10px',
+          boxShadow: '0 4px 16px rgba(15,23,42,0.08)', overflow: 'hidden', display: 'flex', padding: '3px',
+        }}>
+          {(['light', 'satellite', 'terrain'] as const).map(mapType => (
+            <button
+              key={mapType}
+              onClick={() => setActiveBasemap(mapType)}
+              style={{
+                padding: '5px 10px', fontSize: '10.5px', fontWeight: 700,
+                textTransform: 'uppercase', letterSpacing: '0.04em', cursor: 'pointer',
+                borderRadius: '6px', border: 'none', transition: 'all 0.15s',
+                background: activeBasemap === mapType ? '#2563EB' : 'transparent',
+                color: activeBasemap === mapType ? '#FFFFFF' : '#64748B',
+              }}
+            >
+              {mapType}
+            </button>
+          ))}
+        </div>
+
+        {/* Layer Control Dropdown Button */}
+        <LayerControl />
+      </div>
+
+      {/* ── LEFT SIDE FLOATING DIAGNOSTICS CARD (Stacked below filter bar) ── */}
+      <div style={{
+        position: 'absolute', top: '76px', left: '60px', zIndex: 1000,
+        width: '230px', background: '#FFFFFF', border: '1px solid #E8EDF3',
+        borderRadius: '12px', padding: '16px', boxShadow: '0 4px 20px rgba(15,23,42,0.08)',
+        pointerEvents: 'auto',
+      }}>
+        <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 12px 0' }}>
+          Triage Scope Diagnostics
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {[
-            { label: 'Scope Basins', value: filteredMetrics.totalBasins, icon: Grid, color: 'text-blue-600' },
-            { label: 'Average Depth', value: `${filteredMetrics.avgDepth}m`, icon: Droplets, color: 'text-sky-600' },
-            { label: 'Deficit Ratio', value: `${filteredMetrics.avgDeficit} MCM`, icon: AlertTriangle, color: 'text-red-500' },
-            { label: 'Active Sensors', value: filteredMetrics.activeSensors, icon: Activity, color: 'text-green-600' },
+            { label: 'Scope Basins',   value: filteredMetrics.totalBasins, icon: Grid,           color: '#3B82F6' },
+            { label: 'Average Depth',  value: `${filteredMetrics.avgDepth}m`, icon: Droplets,       color: '#0284C7' },
+            { label: 'Deficit Ratio',  value: `${filteredMetrics.avgDeficit} MCM`, icon: AlertTriangle, color: '#EF4444' },
+            { label: 'Active Sensors', value: filteredMetrics.activeSensors, icon: Activity,        color: '#10B981' },
           ].map((item, idx) => (
-            <div key={idx} className="flex items-center justify-between text-xs py-1 border-b border-slate-50 last:border-0">
-              <span className="text-slate-400 font-medium flex items-center gap-1.5">
-                <item.icon size={11} className={item.color} />
+            <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', paddingBottom: '8px', borderBottom: idx < 3 ? '1px solid #F1F5F9' : 'none' }}>
+              <span style={{ color: '#64748B', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <item.icon size={13} color={item.color} />
                 {item.label}
               </span>
-              <span className="font-bold text-slate-800">{item.value}</span>
+              <span style={{ fontWeight: 800, color: '#0F172A' }}>{item.value}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* ── BASEMAP SWITCHER OVERLAY (Floating Top Right) ───────────── */}
-      <div className="absolute top-4 right-20 z-[1000] bg-white border border-slate-200 shadow-sm rounded-md overflow-hidden flex select-none">
-        {(['light', 'satellite', 'terrain'] as const).map(mapType => (
-          <button
-            key={mapType}
-            onClick={() => setActiveBasemap(mapType)}
-            className={[
-              'px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider cursor-pointer border-r last:border-r-0 border-slate-200 transition-colors',
-              activeBasemap === mapType ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50'
-            ].join(' ')}
-          >
-            {mapType}
-          </button>
-        ))}
-      </div>
-
-      {/* ── HEATMAP METRIC PARAMETER TOGGLE (Floating Bottom Right) ── */}
+      {/* ── HEATMAP METRIC PARAMETER TOGGLE (Floating Bottom Left) ── */}
       {appState.activeLayers.includes('heatmap') && (
-        <div className="absolute bottom-16 right-4 z-[1000] bg-white border border-slate-200 shadow-md rounded-md p-3 select-none w-48 animate-[fadeInUp_0.15s_ease-out]">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
-            <Layers size={11} className="text-blue-600" />
-            Heatmap Parameter
+        <div style={{
+          position: 'absolute', bottom: '150px', left: '16px', zIndex: 1000,
+          background: '#FFFFFF', border: '1px solid #E8EDF3', borderRadius: '12px',
+          padding: '14px', boxShadow: '0 4px 16px rgba(15,23,42,0.08)', width: '180px',
+        }}>
+          <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Layers size={12} color="#2563EB" /> Heatmap Metric
           </p>
-          <div className="space-y-1">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {(['risk', 'depth', 'extraction', 'rainfall'] as const).map(param => (
               <button
                 key={param}
                 onClick={() => setHeatmapParameter(param)}
-                className={[
-                  'w-full text-left px-2 py-1 text-xs rounded transition-colors capitalize font-medium cursor-pointer',
-                  heatmapParameter === param ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-600 hover:bg-slate-50'
-                ].join(' ')}
+                style={{
+                  textAlign: 'left', padding: '6px 10px', fontSize: '12px',
+                  borderRadius: '6px', border: 'none', cursor: 'pointer',
+                  textTransform: 'capitalize', fontWeight: heatmapParameter === param ? 700 : 500,
+                  background: heatmapParameter === param ? '#EFF6FF' : 'transparent',
+                  color: heatmapParameter === param ? '#1D4ED8' : '#475569',
+                }}
               >
                 {param === 'depth' ? 'Water Level' : param}
               </button>
@@ -303,8 +366,8 @@ export function MapPage() {
         </div>
       )}
 
-      {/* Map Centerpiece canvas */}
-      <div className="flex-1 w-full h-full relative z-10">
+      {/* ── MAP CANVAS ── */}
+      <div style={{ flex: 1, width: '100%', height: '100%', position: 'relative', zIndex: 10 }}>
         <NationalMap
           selectedState={selectedState}
           selectedDistrictId={selectedDistrictId}
@@ -316,27 +379,31 @@ export function MapPage() {
         />
       </div>
 
-      {/* Floating Toolbar Controls */}
+      {/* Zoom controls & Compass */}
       <MapToolbar />
-      <LayerControl />
 
       {/* Spatiotemporal legend */}
-      <div className="absolute bottom-6 left-4 z-[1000] bg-white border border-slate-200 rounded-md p-3.5 shadow-sm select-none animate-[fadeInUp_0.15s_ease-out] w-48 pointer-events-none">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2.5">
+      <div style={{
+        position: 'absolute', bottom: '16px', left: '16px', zIndex: 1000,
+        background: '#FFFFFF', border: '1px solid #E8EDF3', borderRadius: '12px',
+        padding: '14px 16px', boxShadow: '0 4px 16px rgba(15,23,42,0.08)', width: '190px',
+        pointerEvents: 'none',
+      }}>
+        <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px 0' }}>
           {appState.activeLayers.includes('rainfall') ? 'Rainfall Scale (mm)' : 'Aquifer Risk Index'}
         </p>
         {appState.activeLayers.includes('rainfall') ? (
-          <div className="space-y-1.5 text-[11px] text-slate-700 font-medium">
-            <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-blue-600" /><span>Over 1000 mm</span></div>
-            <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-blue-400" /><span>500 - 1000 mm</span></div>
-            <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-blue-100" /><span>Below 500 mm</span></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11.5px', color: '#475569', fontWeight: 500 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: 10, height: 10, borderRadius: 3, background: '#2563EB' }} /><span>Over 1000 mm</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: 10, height: 10, borderRadius: 3, background: '#60A5FA' }} /><span>500 - 1000 mm</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: 10, height: 10, borderRadius: 3, background: '#DBEAFE' }} /><span>Below 500 mm</span></div>
           </div>
         ) : (
-          <div className="space-y-1.5 text-[11px] text-slate-700 font-medium">
-            <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-red-600" /><span>Critical Moratorium</span></div>
-            <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-orange-500" /><span>High Deficit Risk</span></div>
-            <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500" /><span>Moderate Basin Stress</span></div>
-            <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500" /><span>Stable Recharge</span></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11.5px', color: '#475569', fontWeight: 500 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444' }} /><span>Critical Moratorium</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#F97316' }} /><span>High Deficit Risk</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3B82F6' }} /><span>Moderate Stress</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981' }} /><span>Stable Recharge</span></div>
           </div>
         )}
       </div>

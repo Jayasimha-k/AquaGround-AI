@@ -13,6 +13,7 @@ const initialState: AppState = {
   activeLayers: MAP_LAYERS.filter(l => l.active).map(l => l.id),
   notificationPanelOpen: false,
   unreadNotifications: 5,
+  aiAssistantOpen: false,
   mapCenter: MAP_CONFIG.DEFAULT_CENTER,
   mapZoom: MAP_CONFIG.DEFAULT_ZOOM,
   isLoading: false,
@@ -28,6 +29,9 @@ type Action =
   | { type: 'TOGGLE_NOTIFICATION_PANEL' }
   | { type: 'CLOSE_NOTIFICATION_PANEL' }
   | { type: 'MARK_NOTIFICATIONS_READ' }
+  | { type: 'TOGGLE_AI_ASSISTANT' }
+  | { type: 'OPEN_AI_ASSISTANT' }
+  | { type: 'CLOSE_AI_ASSISTANT' }
   | { type: 'SET_MAP_CENTER'; payload: { lat: number; lng: number } }
   | { type: 'SET_MAP_ZOOM'; payload: number }
   | { type: 'SET_LOADING'; payload: boolean };
@@ -54,6 +58,12 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, notificationPanelOpen: false };
     case 'MARK_NOTIFICATIONS_READ':
       return { ...state, unreadNotifications: 0 };
+    case 'TOGGLE_AI_ASSISTANT':
+      return { ...state, aiAssistantOpen: !state.aiAssistantOpen };
+    case 'OPEN_AI_ASSISTANT':
+      return { ...state, aiAssistantOpen: true };
+    case 'CLOSE_AI_ASSISTANT':
+      return { ...state, aiAssistantOpen: false };
     case 'SET_MAP_CENTER':
       return { ...state, mapCenter: action.payload };
     case 'SET_MAP_ZOOM':
@@ -76,6 +86,9 @@ interface AppContextValue {
   toggleNotificationPanel: () => void;
   closeNotificationPanel: () => void;
   markNotificationsRead: () => void;
+  toggleAiAssistant: () => void;
+  openAiAssistant: () => void;
+  closeAiAssistant: () => void;
   setMapCenter: (coords: { lat: number; lng: number }) => void;
   setMapZoom: (zoom: number) => void;
   setLoading: (loading: boolean) => void;
@@ -95,6 +108,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const toggleNotificationPanel = useCallback(() => dispatch({ type: 'TOGGLE_NOTIFICATION_PANEL' }), []);
   const closeNotificationPanel = useCallback(() => dispatch({ type: 'CLOSE_NOTIFICATION_PANEL' }), []);
   const markNotificationsRead = useCallback(() => dispatch({ type: 'MARK_NOTIFICATIONS_READ' }), []);
+  const toggleAiAssistant = useCallback(() => dispatch({ type: 'TOGGLE_AI_ASSISTANT' }), []);
+  const openAiAssistant = useCallback(() => dispatch({ type: 'OPEN_AI_ASSISTANT' }), []);
+  const closeAiAssistant = useCallback(() => dispatch({ type: 'CLOSE_AI_ASSISTANT' }), []);
   const setMapCenter = useCallback((c: { lat: number; lng: number }) => dispatch({ type: 'SET_MAP_CENTER', payload: c }), []);
   const setMapZoom = useCallback((z: number) => dispatch({ type: 'SET_MAP_ZOOM', payload: z }), []);
   const setLoading = useCallback((l: boolean) => dispatch({ type: 'SET_LOADING', payload: l }), []);
@@ -106,6 +122,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       selectDistrict,
       toggleLayer, setActiveLayers,
       toggleNotificationPanel, closeNotificationPanel, markNotificationsRead,
+      toggleAiAssistant, openAiAssistant, closeAiAssistant,
       setMapCenter, setMapZoom,
       setLoading,
     }}>

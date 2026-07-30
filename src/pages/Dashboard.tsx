@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Activity, AlertTriangle, Server, Radio,
   ShieldCheck, AlertCircle, Clock, Droplets,
-  FileText, Download, TrendingUp, Wifi
+  FileText, Download, TrendingUp, Wifi, ChevronRight
 } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -38,32 +38,52 @@ interface StatCardProps {
   label: string;
   value: string;
   sub: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: React.ComponentType<{ size?: number; color?: string }>;
   accent: 'blue' | 'green' | 'indigo' | 'rose';
 }
 
 function StatCard({ label, value, sub, icon: Icon, accent }: StatCardProps) {
-  const iconStyles = {
-    blue:   'bg-blue-50 text-blue-600',
-    green:  'bg-emerald-50 text-emerald-600',
-    indigo: 'bg-indigo-50 text-indigo-600',
-    rose:   'bg-rose-50 text-rose-600',
+  const styles: Record<string, { border: string; bg: string; iconBg: string; iconColor: string }> = {
+    blue:   { border: '#3B82F6', bg: '#FFFFFF', iconBg: '#EFF6FF', iconColor: '#2563EB' },
+    green:  { border: '#10B981', bg: '#FFFFFF', iconBg: '#ECFDF5', iconColor: '#059669' },
+    indigo: { border: '#6366F1', bg: '#FFFFFF', iconBg: '#EEF2FF', iconColor: '#4F46E5' },
+    rose:   { border: '#F43F5E', bg: '#FFFFFF', iconBg: '#FEF2F2', iconColor: '#E11D48' },
   };
+
+  const s = styles[accent];
+
   return (
-    <div className={`stat-card stat-card-${accent}`}>
-      <div style={{ paddingLeft: '8px' }}>
-        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+    <div
+      style={{
+        background: s.bg,
+        border: '1px solid #E8EDF3',
+        borderLeft: `5px solid ${s.border}`,
+        borderRadius: '14px',
+        padding: '24px 28px',
+        boxShadow: '0 4px 16px rgba(15,23,42,0.06)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        transition: 'transform 0.15s, box-shadow 0.15s',
+      }}
+    >
+      <div>
+        <p style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px 0' }}>
           {label}
         </p>
-        <p className="text-[30px] font-black text-slate-900 tracking-tight leading-none mb-1.5">
+        <p style={{ fontSize: '32px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.5px', lineHeight: 1.1, margin: '0 0 6px 0' }}>
           {value}
         </p>
-        <p className="text-[12px] text-slate-500 font-medium leading-snug">
+        <p style={{ fontSize: '12.5px', color: '#64748B', fontWeight: 500, margin: 0 }}>
           {sub}
         </p>
       </div>
-      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ml-4 ${iconStyles[accent]}`}>
-        <Icon size={22} />
+      <div style={{
+        width: '52px', height: '52px', borderRadius: '14px',
+        background: s.iconBg, display: 'flex', alignItems: 'center',
+        justifyContent: 'center', flexShrink: 0, marginLeft: '16px',
+      }}>
+        <Icon size={24} color={s.iconColor} />
       </div>
     </div>
   );
@@ -74,32 +94,39 @@ function AlertRow({ alert }: { alert: typeof MOCK_ALERTS[0] }) {
   const isCritical = alert.severity === 'critical';
   const isWarning  = alert.severity === 'warning';
 
-  const rowClass = isCritical
-    ? 'alert-row alert-row-critical'
-    : isWarning
-    ? 'alert-row alert-row-warning'
-    : 'alert-row alert-row-info';
-
-  const iconBg = isCritical
-    ? 'bg-red-100 text-red-600'
-    : isWarning
-    ? 'bg-amber-100 text-amber-600'
-    : 'bg-blue-100 text-blue-600';
+  const borderColor = isCritical ? '#EF4444' : isWarning ? '#F59E0B' : '#3B82F6';
+  const bgColor     = isCritical ? '#FEF2F2' : isWarning ? '#FFFBEB' : '#EFF6FF';
+  const iconColor   = isCritical ? '#DC2626' : isWarning ? '#D97706' : '#2563EB';
 
   return (
-    <div className={rowClass}>
-      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${iconBg}`}>
-        <AlertTriangle size={14} />
+    <div style={{
+      background: '#FFFFFF',
+      border: '1px solid #E8EDF3',
+      borderLeft: `4px solid ${borderColor}`,
+      borderRadius: '12px',
+      padding: '16px 18px',
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: '14px',
+      boxShadow: '0 2px 8px rgba(15,23,42,0.04)',
+      transition: 'all 0.15s',
+    }}>
+      <div style={{
+        width: '36px', height: '36px', borderRadius: '10px',
+        background: bgColor, display: 'flex', alignItems: 'center',
+        justifyContent: 'center', flexShrink: 0, marginTop: '2px',
+      }}>
+        <AlertTriangle size={18} color={iconColor} />
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2 mb-1">
-          <span className="text-[13px] font-bold text-slate-900 leading-none">{alert.districtName}</span>
-          <span className="text-[11px] text-slate-400 font-medium shrink-0">
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+          <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>{alert.districtName}</span>
+          <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600, flexShrink: 0 }}>
             {formatDistanceToNow(new Date(alert.timestamp), { addSuffix: true })}
           </span>
         </div>
-        <p className="text-[12px] text-slate-600 font-semibold leading-none mb-1">{alert.type}</p>
-        <p className="text-[12px] text-slate-400 leading-snug line-clamp-2">{alert.message}</p>
+        <p style={{ fontSize: '12.5px', fontWeight: 700, color: iconColor, margin: '0 0 4px 0' }}>{alert.type}</p>
+        <p style={{ fontSize: '12.5px', color: '#475569', lineHeight: 1.5, margin: 0 }}>{alert.message}</p>
       </div>
     </div>
   );
@@ -114,15 +141,20 @@ export function Dashboard() {
       title="National Groundwater Operations Center"
       subtitle="Central hydrological database telemetry nodes and regional directive control panels"
       actions={
-        <span className="flex items-center gap-1.5 text-[12px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg font-semibold">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+        <span style={{
+          display: 'flex', alignItems: 'center', gap: '8px',
+          fontSize: '12.5px', fontWeight: 700, color: '#047857',
+          background: '#ECFDF5', border: '1px solid #A7F3D0',
+          padding: '8px 14px', borderRadius: '10px',
+        }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', animation: 'pulse 2s infinite' }} />
           Operations Room Active
         </span>
       }
     >
 
       {/* ── KPI Stat Cards ────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-7">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px', marginBottom: '28px' }}>
         <StatCard
           label="National Health Index"
           value={`${DASHBOARD_STATS.nationalHealthScore}%`}
@@ -154,40 +186,40 @@ export function Dashboard() {
       </div>
 
       {/* ── Three-Column Command Layout ───────────────────────────────────────── */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px', alignItems: 'start' }}>
 
         {/* ── LEFT: Map + Summary ─────────────────────────────────────────────── */}
-        <div className="flex flex-col gap-5">
-          <div className="card p-6 flex flex-col">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className="card" style={{ padding: '28px', background: '#FFFFFF' }}>
             <SectionHeader
               title="India Tactical Telemetry Map"
               subtitle="Live DWLR basin coordinate cluster distribution"
               action={
                 <Button variant="ghost" size="sm" onClick={() => navigate('/map')}>
-                  Expand Map
+                  Expand Map →
                 </Button>
               }
             />
 
             {/* Mini Map */}
-            <div className="h-60 w-full rounded-xl border border-slate-200 overflow-hidden mt-4 relative z-10">
+            <div style={{ height: '280px', width: '100%', borderRadius: '12px', border: '1px solid #E8EDF3', overflow: 'hidden', marginTop: '18px', position: 'relative', zIndex: 10 }}>
               <MapContainer
                 center={[22.5937, 78.9629]}
                 zoom={4}
                 zoomControl={false}
-                className="w-full h-full"
+                style={{ width: '100%', height: '100%' }}
               >
                 <TileLayer url={MAP_CONFIG.TILE_URL} attribution="" />
                 {MOCK_DISTRICTS.map(d => (
                   <CircleMarker
                     key={d.id}
                     center={[d.coordinates.lat, d.coordinates.lng]}
-                    radius={6}
+                    radius={7}
                     pathOptions={{
                       color: RISK_COLORS[d.riskLevel],
                       fillColor: RISK_COLORS[d.riskLevel],
-                      fillOpacity: 0.75,
-                      weight: 1.5,
+                      fillOpacity: 0.8,
+                      weight: 2,
                     }}
                   />
                 ))}
@@ -196,34 +228,34 @@ export function Dashboard() {
             </div>
 
             {/* Legend */}
-            <div className="mt-3 flex items-center gap-4 flex-wrap">
+            <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
               {[
                 { label: 'Critical', color: '#EF4444' },
                 { label: 'High',     color: '#F97316' },
                 { label: 'Moderate', color: '#3B82F6' },
                 { label: 'Low',      color: '#10B981' },
               ].map(l => (
-                <span key={l.label} className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
-                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: l.color }} />
+                <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
+                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: l.color, flexShrink: 0 }} />
                   {l.label}
                 </span>
               ))}
             </div>
 
             {/* Summary pane */}
-            <div className="mt-4 inner-section space-y-2">
-              <p className="text-[10.5px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-                <ShieldCheck size={12} className="text-blue-500" />
+            <div style={{ marginTop: '20px', background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '12px', padding: '18px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 8px 0' }}>
+                <ShieldCheck size={14} color="#2563EB" />
                 Hydrological Summary
               </p>
-              <p className="text-[13px] text-slate-700 leading-relaxed">
+              <p style={{ fontSize: '13.5px', color: '#334155', lineHeight: 1.6, margin: '0 0 6px 0' }}>
                 National aquifers at{' '}
-                <span className="font-bold text-slate-900">{DASHBOARD_STATS.groundwaterSustainability}%</span>{' '}
+                <strong style={{ color: '#0F172A' }}>{DASHBOARD_STATS.groundwaterSustainability}%</strong>{' '}
                 average storage index.{' '}
-                <span className="font-bold text-slate-900">{DASHBOARD_STATS.activeSensors}</span>{' '}
+                <strong style={{ color: '#0F172A' }}>{DASHBOARD_STATS.activeSensors}</strong>{' '}
                 DWLR nodes active and transmitting.
               </p>
-              <p className="text-[11px] text-slate-400 font-medium">
+              <p style={{ fontSize: '11.5px', color: '#94A3B8', fontWeight: 500, margin: 0 }}>
                 Baseline deviations calculated at 09:30 IST
               </p>
             </div>
@@ -231,13 +263,13 @@ export function Dashboard() {
         </div>
 
         {/* ── MIDDLE: Alerts Queue ──────────────────────────────────────────────── */}
-        <div className="flex flex-col gap-5">
-          <div className="card p-6 flex flex-col">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className="card" style={{ padding: '28px', background: '#FFFFFF' }}>
             <SectionHeader
               title="Aquifer Alerts Queue"
               subtitle="Escalated anomalies requiring administrative dispatch"
             />
-            <div className="space-y-3 mt-4 overflow-y-auto" style={{ maxHeight: 520 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px', maxHeight: '560px', overflowY: 'auto', paddingRight: '4px' }}>
               {MOCK_ALERTS.map(alert => (
                 <AlertRow key={alert.id} alert={alert} />
               ))}
@@ -246,72 +278,71 @@ export function Dashboard() {
         </div>
 
         {/* ── RIGHT: Network Health + Quick Actions ─────────────────────────────── */}
-        <div className="flex flex-col gap-5">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
           {/* Network Telemetry Health */}
-          <div className="card p-6">
+          <div className="card" style={{ padding: '28px', background: '#FFFFFF' }}>
             <SectionHeader
               title="DWLR Network Telemetry"
               subtitle="Physical node diagnostics & uptime"
             />
-            <div className="space-y-3 mt-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
 
-              <div className="network-row">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <Wifi size={16} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: '10px', background: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Wifi size={18} />
                   </div>
                   <div>
-                    <p className="text-[13px] font-semibold text-slate-800 leading-none">Uptime Index</p>
-                    <p className="text-[11px] text-slate-400 mt-1">Target ≥ 99.50%</p>
+                    <p style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', margin: '0 0 3px 0' }}>Uptime Index</p>
+                    <p style={{ fontSize: '11.5px', color: '#94A3B8', margin: 0, fontWeight: 500 }}>Target ≥ 99.50%</p>
                   </div>
                 </div>
-                <span className="text-[15px] font-black text-emerald-600">99.82%</span>
+                <span style={{ fontSize: '16px', fontWeight: 900, color: '#059669' }}>99.82%</span>
               </div>
 
-              <div className="network-row">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                    <Radio size={16} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: '10px', background: '#ECFDF5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Radio size={18} />
                   </div>
                   <div>
-                    <p className="text-[13px] font-semibold text-slate-800 leading-none">Active Sensors</p>
-                    <p className="text-[11px] text-slate-400 mt-1">Telemetry active</p>
+                    <p style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', margin: '0 0 3px 0' }}>Active Sensors</p>
+                    <p style={{ fontSize: '11.5px', color: '#94A3B8', margin: 0, fontWeight: 500 }}>Telemetry active</p>
                   </div>
                 </div>
-                <span className="text-[15px] font-black text-slate-900">
+                <span style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A' }}>
                   {DASHBOARD_STATS.activeSensors}
-                  <span className="text-[12px] font-medium text-slate-400 ml-1">/ {DASHBOARD_STATS.totalSensors}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 500, color: '#94A3B8', marginLeft: '4px' }}>/ {DASHBOARD_STATS.totalSensors}</span>
                 </span>
               </div>
 
-              <div className="network-row">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
-                    <AlertCircle size={16} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: '10px', background: '#F8FAFC', border: '1px solid #E2E8F0', color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <AlertCircle size={18} />
                   </div>
                   <div>
-                    <p className="text-[13px] font-semibold text-slate-800 leading-none">Offline Nodes</p>
-                    <p className="text-[11px] text-slate-400 mt-1">Maintenance required</p>
+                    <p style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', margin: '0 0 3px 0' }}>Offline Nodes</p>
+                    <p style={{ fontSize: '11.5px', color: '#94A3B8', margin: 0, fontWeight: 500 }}>Maintenance required</p>
                   </div>
                 </div>
-                <span className="text-[15px] font-black text-rose-500">
+                <span style={{ fontSize: '16px', fontWeight: 900, color: '#EF4444' }}>
                   {DASHBOARD_STATS.offlineSensors}
                 </span>
               </div>
 
               {/* Progress bar */}
-              <div className="mt-2 pt-3 border-t border-slate-100">
-                <div className="flex justify-between text-[11px] font-medium text-slate-500 mb-2">
+              <div style={{ marginTop: '6px', paddingTop: '16px', borderTop: '1px solid #F1F5F9' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 600, color: '#64748B', marginBottom: '8px' }}>
                   <span>Network Coverage</span>
-                  <span className="font-bold text-slate-700">
+                  <span style={{ fontWeight: 800, color: '#0F172A' }}>
                     {Math.round((DASHBOARD_STATS.activeSensors / DASHBOARD_STATS.totalSensors) * 100)}%
                   </span>
                 </div>
-                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div style={{ height: '8px', background: '#E2E8F0', borderRadius: '99px', overflow: 'hidden' }}>
                   <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-700"
-                    style={{ width: `${Math.round((DASHBOARD_STATS.activeSensors / DASHBOARD_STATS.totalSensors) * 100)}%` }}
+                    style={{ height: '100%', background: 'linear-gradient(90deg, #3B82F6, #6366F1)', borderRadius: '99px', width: `${Math.round((DASHBOARD_STATS.activeSensors / DASHBOARD_STATS.totalSensors) * 100)}%` }}
                   />
                 </div>
               </div>
@@ -319,17 +350,17 @@ export function Dashboard() {
           </div>
 
           {/* Operations Command Menu */}
-          <div className="card p-6 flex flex-col gap-4">
+          <div className="card" style={{ padding: '28px', background: '#FFFFFF', display: 'flex', flexDirection: 'column', gap: '18px' }}>
             <SectionHeader
               title="Operations Command"
               subtitle="Dispatch policy, export logs, generate audits"
             />
 
-            <div className="space-y-3 mt-1">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '6px' }}>
               <Button
                 variant="primary"
                 fullWidth
-                icon={<FileText size={15} />}
+                icon={<FileText size={16} />}
                 onClick={() => navigate('/reports')}
               >
                 Generate Hydrological Audit
@@ -337,22 +368,22 @@ export function Dashboard() {
               <Button
                 variant="secondary"
                 fullWidth
-                icon={<Download size={15} />}
+                icon={<Download size={16} />}
               >
                 Export Sensor Telemetry Logs
               </Button>
               <Button
                 variant="ghost"
                 fullWidth
-                icon={<TrendingUp size={15} />}
+                icon={<TrendingUp size={16} />}
                 onClick={() => navigate('/predictions')}
               >
                 View Prediction Center
               </Button>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex items-center gap-2 text-[11.5px] text-slate-400 font-medium">
-              <Clock size={12} className="text-slate-300 shrink-0" />
+            <div style={{ paddingTop: '14px', borderTop: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#94A3B8', fontWeight: 500 }}>
+              <Clock size={13} color="#94A3B8" />
               <span>National Ops Center · Delhi HQ · IST</span>
             </div>
           </div>
