@@ -1,5 +1,5 @@
 // =============================================================================
-// Sidebar — National Operations Center Sidebar & Future AI Hub
+// Sidebar — National Operations Center Sidebar
 // =============================================================================
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -7,37 +7,31 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Map, BarChart3, TrendingUp,
   AlertTriangle, Brain, FileText, Users, Settings,
-  ChevronLeft, ChevronRight, Droplets, LogOut, User,
-  Sparkles, Info, HelpCircle
+  ChevronLeft, ChevronRight, Droplets, LogOut, User, Sparkles,
 } from 'lucide-react';
 import { animate } from 'animejs';
 import { useApp } from '@/contexts/AppContext';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 
-const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string; color?: string }>> = {
   LayoutDashboard, Map, BarChart3, TrendingUp,
   AlertTriangle, Brain, FileText, Users, Settings,
 };
 
-// Custom labels for CGWB Operations Modules
-const MODULE_LABELS: Record<string, string> = {
-  dashboard: 'National Operations Center',
-  map: 'Operations Map',
-  analytics: 'Resource Intelligence',
-  predictions: 'Prediction Center',
-  risk: 'Risk Monitor',
-  recommendations: 'Decision Center',
-  reports: 'Reports',
-  users: 'User Management',
-  settings: 'Settings',
-};
+const primaryItems = [
+  { id: 'dashboard',       label: 'Operations Center', path: '/',               icon: 'LayoutDashboard' },
+  { id: 'map',             label: 'Operations Map',    path: '/map',             icon: 'Map' },
+  { id: 'analytics',       label: 'Resource Intel',    path: '/analytics',       icon: 'BarChart3' },
+  { id: 'predictions',     label: 'Predictions',       path: '/predictions',     icon: 'TrendingUp' },
+  { id: 'risk',            label: 'Risk Monitor',      path: '/risk',            icon: 'AlertTriangle' },
+  { id: 'recommendations', label: 'Decision Center',   path: '/recommendations', icon: 'Brain' },
+  { id: 'reports',         label: 'Reports',           path: '/reports',         icon: 'FileText' },
+];
 
-const FUTURE_ROADMAP = [
-  { title: 'Explainable AI (XAI)', desc: 'Provides clear mathematical and physical explanations behind forecast confidence scores.' },
-  { title: 'Digital Twin of India', desc: 'Real-time hydrological simulation mapping for trans-boundary river basins.' },
-  { title: 'Gemini AI Assistant', desc: 'Natural language interface for CGWB officers to query aquifer telemetry data directly.' },
-  { title: 'Scenario Simulation', desc: 'Simulate crop pattern changes and monsoon deficits to model future water table impacts.' },
+const secondaryItems = [
+  { id: 'users',    label: 'User Management', path: '/users',    icon: 'Users' },
+  { id: 'settings', label: 'Settings',        path: '/settings', icon: 'Settings' },
 ];
 
 export function Sidebar() {
@@ -46,116 +40,173 @@ export function Sidebar() {
   const location = useLocation();
   const sidebarRef = useRef<HTMLElement>(null);
   const [roadmapOpen, setRoadmapOpen] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   useEffect(() => {
     if (!sidebarRef.current) return;
     animate(sidebarRef.current, {
-      width: sidebarCollapsed ? 56 : 220,
+      width: sidebarCollapsed ? 68 : 248,
       duration: 220, ease: 'outCubic',
     });
   }, [sidebarCollapsed]);
 
-  const primaryNavIds = ['dashboard', 'map', 'analytics', 'predictions', 'risk', 'recommendations', 'reports'];
-  const secondaryNavIds = ['users', 'settings'];
-
-  const primaryItems = [
-    { id: 'dashboard', label: MODULE_LABELS.dashboard, path: '/', icon: 'LayoutDashboard' },
-    { id: 'map', label: MODULE_LABELS.map, path: '/map', icon: 'Map' },
-    { id: 'analytics', label: MODULE_LABELS.analytics, path: '/analytics', icon: 'BarChart3' },
-    { id: 'predictions', label: MODULE_LABELS.predictions, path: '/predictions', icon: 'TrendingUp' },
-    { id: 'risk', label: MODULE_LABELS.risk, path: '/risk', icon: 'AlertTriangle' },
-    { id: 'recommendations', label: MODULE_LABELS.recommendations, path: '/recommendations', icon: 'Brain' },
-    { id: 'reports', label: MODULE_LABELS.reports, path: '/reports', icon: 'FileText' },
-  ];
-
-  const secondaryItems = [
-    { id: 'users', label: MODULE_LABELS.users, path: '/users', icon: 'Users' },
-    { id: 'settings', label: MODULE_LABELS.settings, path: '/settings', icon: 'Settings' },
-  ];
-
-  const renderNavList = (items: typeof primaryItems) => (
-    items.map((item) => {
+  const renderNavList = (items: typeof primaryItems) =>
+    items.map(item => {
       const Icon = ICON_MAP[item.icon];
       const isActive = item.path === '/'
         ? location.pathname === '/'
         : location.pathname.startsWith(item.path);
+      const isHovered = hoveredItem === item.id;
 
       return (
-        <NavLink key={item.id} to={item.path}
+        <NavLink
+          key={item.id}
+          to={item.path}
           title={sidebarCollapsed ? item.label : undefined}
-          className={[
-            'flex items-center gap-2.5 mx-2 px-2.5 py-2 rounded-md transition-all duration-100 group relative',
-            isActive
-              ? 'bg-blue-50 text-blue-700 font-semibold shadow-sm border border-blue-100/30'
-              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
-          ].join(' ')}
+          onMouseEnter={() => setHoveredItem(item.id)}
+          onMouseLeave={() => setHoveredItem(null)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            margin: '2px 10px',
+            padding: sidebarCollapsed ? '10px 0' : '10px 14px',
+            borderRadius: '10px',
+            textDecoration: 'none',
+            transition: 'background 0.15s, box-shadow 0.15s',
+            justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+            background: isActive
+              ? 'linear-gradient(135deg, #2563EB, #1D4ED8)'
+              : isHovered
+              ? '#F1F5F9'
+              : 'transparent',
+            boxShadow: isActive ? '0 4px 12px rgba(37,99,235,0.25)' : 'none',
+            userSelect: 'none',
+          }}
         >
-          {isActive && (
-            <span className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-blue-600 rounded-r" />
+          {Icon && (
+            <Icon
+              size={16}
+              color={isActive ? '#FFFFFF' : isHovered ? '#475569' : '#94A3B8'}
+            />
           )}
-          {Icon && <Icon size={14} className={`shrink-0 ${isActive ? 'text-blue-700' : 'text-slate-400'}`} />}
           {!sidebarCollapsed && (
-            <span className="text-xs tracking-wide">{item.label}</span>
+            <span style={{
+              fontSize: '13px',
+              fontWeight: isActive ? 600 : 500,
+              color: isActive ? '#FFFFFF' : isHovered ? '#1E293B' : '#64748B',
+              whiteSpace: 'nowrap',
+              letterSpacing: '-0.1px',
+            }}>
+              {item.label}
+            </span>
           )}
         </NavLink>
       );
-    })
-  );
+    });
 
   return (
     <aside
       ref={sidebarRef}
-      style={{ width: 220 }}
-      className="flex flex-col h-full bg-white border-r border-slate-200 shrink-0 overflow-hidden z-30 relative select-none"
+      style={{
+        width: sidebarCollapsed ? 68 : 248,
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        background: '#FFFFFF',
+        borderRight: '1px solid #E8EDF3',
+        flexShrink: 0,
+        overflow: 'hidden',
+        zIndex: 30,
+        position: 'relative',
+        boxShadow: '1px 0 6px rgba(15,23,42,0.04)',
+      }}
     >
-      {/* Header */}
-      <div className="flex items-center gap-2 px-4 h-14 border-b border-slate-200 shrink-0 bg-slate-50/50">
-        <div className="w-6.5 h-6.5 rounded bg-blue-600 flex items-center justify-center shrink-0 shadow-sm">
-          <Droplets size={13} className="text-white" />
+      {/* ── Brand Header ──────────────────────────────────────────────── */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '0 16px',
+        height: '60px',
+        borderBottom: '1px solid #F1F5F9',
+        flexShrink: 0,
+        justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+      }}>
+        <div style={{
+          width: 34, height: 34, borderRadius: '10px', flexShrink: 0,
+          background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 12px rgba(37,99,235,0.3)',
+        }}>
+          <Droplets size={15} color="#FFFFFF" />
         </div>
         {!sidebarCollapsed && (
-          <div className="overflow-hidden">
-            <p className="text-xs font-extrabold text-slate-900 tracking-tight whitespace-nowrap">AquaGround AI</p>
-            <p className="text-[9px] text-slate-400 font-bold tracking-wider uppercase whitespace-nowrap">National Command Center</p>
+          <div style={{ overflow: 'hidden' }}>
+            <p style={{
+              fontSize: '13.5px', fontWeight: 800, color: '#0F172A',
+              letterSpacing: '-0.2px', whiteSpace: 'nowrap', lineHeight: 1.2,
+            }}>
+              AquaGround AI
+            </p>
+            <p style={{
+              fontSize: '9.5px', color: '#94A3B8', fontWeight: 700,
+              letterSpacing: '0.08em', textTransform: 'uppercase',
+              whiteSpace: 'nowrap', marginTop: '2px',
+            }}>
+              National Command Center
+            </p>
           </div>
         )}
       </div>
 
-      {/* Navigation */}
-      <div className="flex-1 py-3.5 space-y-0.5 overflow-y-auto overflow-x-hidden">
+      {/* ── Navigation ────────────────────────────────────────────────── */}
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '12px 0' }}>
+
         {renderNavList(primaryItems)}
 
-        {/* Active AI Console Section */}
-        <div className="mt-4 pt-3 border-t border-slate-100">
-          {!sidebarCollapsed ? (
-            <p className="px-4.5 pb-1 text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-              <Sparkles size={10} className="text-blue-500" />
-              <span>AI Assistant Console</span>
+        {/* AI Console section */}
+        <div style={{ marginTop: '8px', paddingTop: '12px', borderTop: '1px solid #F1F5F9' }}>
+          {!sidebarCollapsed && (
+            <p style={{
+              padding: '0 20px 8px',
+              fontSize: '9.5px', fontWeight: 700, color: '#CBD5E1',
+              textTransform: 'uppercase', letterSpacing: '0.08em',
+              display: 'flex', alignItems: 'center', gap: '6px',
+            }}>
+              <Sparkles size={9} color="#93C5FD" /> AI Console
             </p>
-          ) : (
-            <div className="flex justify-center py-1">
-              <Sparkles size={12} className="text-blue-500" />
-            </div>
           )}
-          
           <button
             onClick={() => setRoadmapOpen(true)}
-            className={[
-              'flex items-center gap-2.5 mx-2 w-[calc(100%-16px)] px-2.5 py-2 rounded-md transition-all text-left cursor-pointer',
-              'text-slate-500 hover:bg-blue-50/50 hover:text-blue-700',
-            ].join(' ')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              margin: '2px 10px', padding: sidebarCollapsed ? '10px 0' : '10px 14px',
+              width: 'calc(100% - 20px)', borderRadius: '10px', border: 'none',
+              background: 'none', cursor: 'pointer', textAlign: 'left',
+              transition: 'background 0.15s',
+              justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#EFF6FF')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'none')}
           >
-            <Sparkles size={14} className="shrink-0 text-blue-500" />
+            <Sparkles size={16} color="#3B82F6" />
             {!sidebarCollapsed && (
-              <span className="text-xs">Active Assistant</span>
+              <span style={{ fontSize: '13px', fontWeight: 500, color: '#3B82F6' }}>
+                Active Assistant
+              </span>
             )}
           </button>
         </div>
 
-        {/* Administration Section */}
-        <div className="mt-4 pt-3 border-t border-slate-100">
+        {/* Administration section */}
+        <div style={{ marginTop: '8px', paddingTop: '12px', borderTop: '1px solid #F1F5F9' }}>
           {!sidebarCollapsed && (
-            <p className="px-4.5 pb-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+            <p style={{
+              padding: '0 20px 8px',
+              fontSize: '9.5px', fontWeight: 700, color: '#CBD5E1',
+              textTransform: 'uppercase', letterSpacing: '0.08em',
+            }}>
               Administration
             </p>
           )}
@@ -163,34 +214,68 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Bottom Profile Details */}
-      <div className="border-t border-slate-200 p-2.5 bg-slate-50/50">
-        <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-slate-100/75 cursor-pointer transition-colors">
-          <div className="w-7 h-7 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center shrink-0">
-            <User size={13} className="text-blue-600" />
+      {/* ── User Profile ──────────────────────────────────────────────── */}
+      <div style={{
+        borderTop: '1px solid #F1F5F9',
+        padding: '12px',
+        flexShrink: 0,
+        background: '#FAFBFC',
+      }}>
+        <div
+          style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            padding: '10px 12px', borderRadius: '10px', cursor: 'pointer',
+            transition: 'background 0.15s',
+            justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#F1F5F9')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+        >
+          <div style={{
+            width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+            background: 'linear-gradient(135deg, #60A5FA, #2563EB)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(37,99,235,0.25)',
+          }}>
+            <User size={14} color="#FFFFFF" />
           </div>
           {!sidebarCollapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-slate-800 truncate leading-normal">Dr. Anand Verma</p>
-              <p className="text-[9px] text-slate-400 font-medium truncate leading-none mt-0.5">Senior Hydrogeologist</p>
-            </div>
+            <>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: '13px', fontWeight: 600, color: '#1E293B', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  Dr. Anand Verma
+                </p>
+                <p style={{ fontSize: '10.5px', color: '#94A3B8', fontWeight: 500, lineHeight: 1.2, marginTop: '2px' }}>
+                  Senior Hydrogeologist
+                </p>
+              </div>
+              <LogOut size={13} color="#CBD5E1" style={{ flexShrink: 0 }} />
+            </>
           )}
-          {!sidebarCollapsed && <LogOut size={13} className="text-slate-400 shrink-0" />}
         </div>
       </div>
 
-      {/* Collapse button */}
+      {/* ── Collapse Toggle ────────────────────────────────────────────── */}
       <button
         onClick={toggleSidebar}
-        className="absolute -right-3 top-16 z-50 w-6 h-6 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center hover:bg-slate-50 transition-colors cursor-pointer"
-        aria-label="Toggle Navigation Sidebar"
+        aria-label="Toggle Sidebar"
+        style={{
+          position: 'absolute', right: -14, top: 72,
+          width: 28, height: 28, borderRadius: '50%',
+          background: '#FFFFFF', border: '1.5px solid #E2E8F0',
+          boxShadow: '0 2px 8px rgba(15,23,42,0.12)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', zIndex: 50, transition: 'border-color 0.15s, box-shadow 0.15s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#93C5FD'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(37,99,235,0.2)'; }}
+        onMouseLeave={e => { (e.currentTarget.style.borderColor = '#E2E8F0'); (e.currentTarget.style.boxShadow = '0 2px 8px rgba(15,23,42,0.12)'); }}
       >
         {sidebarCollapsed
-          ? <ChevronRight size={11} className="text-slate-500" />
-          : <ChevronLeft size={11} className="text-slate-500" />}
+          ? <ChevronRight size={12} color="#64748B" />
+          : <ChevronLeft size={12} color="#64748B" />}
       </button>
 
-      {/* Active AI assistant Modal */}
+      {/* ── AI Console Modal ───────────────────────────────────────────── */}
       <Modal
         open={roadmapOpen}
         onClose={() => setRoadmapOpen(false)}
@@ -198,24 +283,23 @@ export function Sidebar() {
         subtitle="Active services and pipeline statuses for the Central Ground Water Board platform"
         footer={<Button variant="secondary" onClick={() => setRoadmapOpen(false)}>Acknowledge</Button>}
       >
-        <div className="space-y-4 font-sans">
-          <div className="bg-green-50 border border-green-200 text-green-800 rounded p-3 text-xs flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span>AI Service Active · Model: gemini-1.5-flash</span>
+        <div className="space-y-4">
+          <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22C55E', flexShrink: 0, animation: 'pulse 2s infinite' }} />
+            <span style={{ fontSize: '12.5px', color: '#166534', fontWeight: 600 }}>AI Service Active · Model: gemini-1.5-flash</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {[
-              { title: 'Explain Hydrological Risk', desc: 'Provides clear structural explanations behind critical and high risk classifications.' },
-              { title: 'Executive Report Generator', desc: 'Assembles regional aquifer indicators into official reports ready for printing/exporting.' },
-              { title: 'District Summary Compiler', desc: 'Summarizes water level depth and telemetry health trajectories for active basins.' },
-              { title: 'Interactive Officer Chat', desc: 'Allows natural language chat using historical context and ground truth datasets.' },
+              { title: 'Explain Hydrological Risk', desc: 'Structural explanations behind critical risk classifications.' },
+              { title: 'Executive Report Generator', desc: 'Assembles aquifer indicators into official reports.' },
+              { title: 'District Summary Compiler', desc: 'Summarizes water level depth and telemetry trajectories.' },
+              { title: 'Interactive Officer Chat', desc: 'Natural language chat using ground truth datasets.' },
             ].map((item, idx) => (
-              <div key={idx} className="p-3 border border-slate-150 rounded-md bg-slate-50">
-                <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <Sparkles size={11} className="text-blue-500" />
-                  {item.title}
+              <div key={idx} style={{ padding: '14px', border: '1px solid #F1F5F9', borderRadius: '10px', background: '#FAFBFC' }}>
+                <h4 style={{ fontSize: '12.5px', fontWeight: 700, color: '#1E293B', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                  <Sparkles size={11} color="#3B82F6" /> {item.title}
                 </h4>
-                <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">{item.desc}</p>
+                <p style={{ fontSize: '11.5px', color: '#64748B', marginTop: '6px', lineHeight: 1.6 }}>{item.desc}</p>
               </div>
             ))}
           </div>

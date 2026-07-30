@@ -1,11 +1,10 @@
 // =============================================================================
-// Decision Support Page — Hydrological Intervention Review (Light Theme)
+// Decision Support Page — Hydrological Intervention Review
 // =============================================================================
 
 import React, { useState } from 'react';
-import { Brain, Check, X, Edit, AlertCircle, ChevronRight, FileText, Activity, ShieldAlert } from 'lucide-react';
+import { Brain, AlertCircle, ChevronRight, FileText, Activity, ShieldAlert } from 'lucide-react';
 import { PageContainer } from '@/components/ui/PageContainer';
-import { Card } from '@/components/ui/GlassCard';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
@@ -15,26 +14,23 @@ import { MOCK_RECOMMENDATIONS, MOCK_DECISIONS, MOCK_DISTRICTS } from '@/constant
 import type { AIRecommendation, DecisionStatus } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 
-const PRIORITY_COLORS = {
-  urgent: { bg: 'bg-red-50/50', border: 'border-red-200', badge: 'critical' as const, dot: 'bg-red-500', label: 'Urgent Action' },
-  high: { bg: 'bg-orange-50/50', border: 'border-orange-200', badge: 'high' as const, dot: 'bg-orange-500', label: 'High Priority' },
-  medium: { bg: 'bg-blue-50/50', border: 'border-blue-200', badge: 'moderate' as const, dot: 'bg-blue-500', label: 'Medium Priority' },
-  low: { bg: 'bg-slate-50/50', border: 'border-slate-200', badge: 'stable' as const, dot: 'bg-slate-500', label: 'Low Priority' },
+const PRIORITY_STYLE: Record<string, { dot: string; label: string; badge: any }> = {
+  urgent: { dot: '#EF4444', label: 'Urgent Action',    badge: 'critical' },
+  high:   { dot: '#F97316', label: 'High Priority',    badge: 'high' },
+  medium: { dot: '#3B82F6', label: 'Medium Priority',  badge: 'moderate' },
+  low:    { dot: '#94A3B8', label: 'Low Priority',     badge: 'stable' },
 };
 
-const decisionTimeline = [
-  ...MOCK_DECISIONS.map(d => ({
-    id: d.id,
-    title: `${d.districtName} Directive`,
-    subtitle: d.officerName,
-    description: d.note || 'Approved without modification.',
-    timestamp: d.timestamp,
-    status: d.status,
-    actor: d.officerName,
-  })),
-];
+const decisionTimeline = MOCK_DECISIONS.map(d => ({
+  id: d.id,
+  title: `${d.districtName} Directive`,
+  subtitle: d.officerName,
+  description: d.note || 'Approved without modification.',
+  timestamp: d.timestamp,
+  status: d.status,
+  actor: d.officerName,
+}));
 
-// Map mock evidence & recommended actions for demonstration
 const MAPPED_DETAILS: Record<string, { reason: string; evidence: string; action: string }> = {
   'rec-1': {
     reason: 'Critical aquifer depletion due to intensive tube-well extraction exceeding recharge rate by 210%.',
@@ -68,7 +64,7 @@ export function DecisionSupport() {
 
   const details = selectedRec ? (MAPPED_DETAILS[selectedRec.id] ?? {
     reason: selectedRec.summary,
-    evidence: `Groundwater depth estimated at critical levels based on telemetry analysis.`,
+    evidence: 'Groundwater depth estimated at critical levels based on telemetry analysis.',
     action: selectedRec.details,
   }) : null;
 
@@ -77,44 +73,48 @@ export function DecisionSupport() {
       title="Decision Support Workspace"
       subtitle="Hydrological directives review panel and directive dispatch command (Human-in-the-Loop)"
     >
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '20px', alignItems: 'start' }}>
 
-        {/* Left: Directive Recommendations List */}
-        <div className="xl:col-span-2 space-y-4">
-          <SectionHeader title="Active Telemetry Directives" subtitle="Directives awaiting hydrogeological validation" />
-          <div className="space-y-3">
+        {/* ── Left: Directives List ─────────────────────────────────────── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <SectionHeader
+            title="Active Telemetry Directives"
+            subtitle="Directives awaiting hydrogeological validation"
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {MOCK_RECOMMENDATIONS.map(rec => {
-              const p = PRIORITY_COLORS[rec.priority];
+              const p = PRIORITY_STYLE[rec.priority] ?? PRIORITY_STYLE.medium;
               const isSelected = selectedRec?.id === rec.id;
               const decision = decisions[rec.id];
-
               return (
                 <div
                   key={rec.id}
                   onClick={() => setSelectedRec(rec)}
-                  className={[
-                    'cursor-pointer rounded-md border p-4 transition-all duration-150 bg-white',
-                    isSelected ? 'ring-2 ring-blue-600/20 border-blue-600 shadow-sm' : 'border-slate-200 hover:shadow-sm',
-                  ].join(' ')}
+                  style={{
+                    cursor: 'pointer', borderRadius: '12px', padding: '18px 20px',
+                    background: isSelected ? '#F0F7FF' : '#FFFFFF',
+                    border: `1px solid ${isSelected ? '#93C5FD' : '#E8EDF3'}`,
+                    boxShadow: isSelected ? '0 4px 16px rgba(37,99,235,0.1)' : '0 1px 3px rgba(15,23,42,0.05)',
+                    transition: 'all 0.15s',
+                  }}
                 >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`w-1.5 h-1.5 rounded-full ${p.dot}`} />
-                      <span className="font-semibold text-slate-900 text-xs">{rec.districtName}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: p.dot, flexShrink: 0 }} />
+                      <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>{rec.districtName}</span>
                     </div>
-                    {decision ? (
-                      <StatusBadge variant={decision} size="sm" />
-                    ) : (
-                      <StatusBadge variant={p.badge} label={p.label} size="sm" />
-                    )}
+                    {decision
+                      ? <StatusBadge variant={decision} size="sm" />
+                      : <StatusBadge variant={p.badge} label={p.label} size="sm" />
+                    }
                   </div>
-                  <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{rec.summary}</p>
-                  <div className="flex items-center justify-between mt-3 text-[10px] text-slate-400 font-medium">
-                    <span>
-                      Generated {formatDistanceToNow(new Date(rec.generatedAt), { addSuffix: true })}
-                    </span>
-                    <span className="text-blue-600 font-semibold flex items-center gap-0.5">
-                      Review Directive <ChevronRight size={10} />
+                  <p style={{ fontSize: '12.5px', color: '#64748B', lineHeight: 1.6, margin: '0 0 12px 0' }}>
+                    {rec.summary}
+                  </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', color: '#94A3B8', fontWeight: 600 }}>
+                    <span>{formatDistanceToNow(new Date(rec.generatedAt), { addSuffix: true })}</span>
+                    <span style={{ color: '#2563EB', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '3px' }}>
+                      Review <ChevronRight size={11} />
                     </span>
                   </div>
                 </div>
@@ -123,125 +123,124 @@ export function DecisionSupport() {
           </div>
         </div>
 
-        {/* Right: Selected Directive Action Center */}
-        <div className="xl:col-span-3 space-y-5">
+        {/* ── Right: Action Center ──────────────────────────────────────── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {selectedRec && details ? (
             <>
-              {/* Structured Recommendation Workspace */}
-              <div className="card p-5 space-y-4">
+              {/* Directive workspace */}
+              <div className="card" style={{ padding: '28px' }}>
                 {/* Header */}
-                <div className="flex items-start gap-3 pb-4 border-b border-slate-100">
-                  <div className="p-2 bg-blue-50 text-blue-700 rounded">
-                    <Brain size={16} />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', paddingBottom: '20px', borderBottom: '1px solid #F1F5F9', marginBottom: '24px' }}>
+                  <div style={{ width: 44, height: 44, borderRadius: '12px', background: '#EFF6FF', border: '1px solid #BFDBFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Brain size={20} color="#2563EB" />
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-slate-900 text-sm">{selectedRec.districtName} Directive</h3>
-                      <span className="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded">
-                        Model Confidence: {selectedRec.confidence}%
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                        {selectedRec.districtName} Directive
+                      </h3>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#2563EB', background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '4px 12px', borderRadius: '6px', flexShrink: 0 }}>
+                        Confidence: {selectedRec.confidence}%
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600, marginTop: '5px' }}>
                       {MOCK_DISTRICTS.find(d => d.id === selectedRec.districtId)?.state || 'Monitored'} Aquifer Basin
                     </p>
                   </div>
                 </div>
 
-                {/* Structured details replacing paragraphs */}
-                <div className="space-y-4">
-                  {/* Reason */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-2 border-b border-slate-50 pb-3">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                      <ShieldAlert size={12} className="text-slate-400 shrink-0" />
-                      <span>Reason</span>
+                {/* Details */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {[
+                    { icon: <ShieldAlert size={14} color="#94A3B8" />, label: 'Reason',               value: details.reason, mono: false },
+                    { icon: <Activity    size={14} color="#94A3B8" />, label: 'Telemetry Evidence',    value: details.evidence, mono: true },
+                    { icon: <FileText    size={14} color="#94A3B8" />, label: 'Recommended Action',    value: details.action, mono: false, highlight: true },
+                  ].map((row, i) => (
+                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: '16px', paddingBottom: i < 2 ? '20px' : 0, borderBottom: i < 2 ? '1px solid #F1F5F9' : 'none' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {row.icon}
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          {row.label}
+                        </span>
+                      </div>
+                      <div style={{
+                        fontSize: '13px', lineHeight: 1.7, fontWeight: row.mono ? 500 : 600,
+                        color: row.highlight ? '#1D4ED8' : '#334155',
+                        fontFamily: row.mono ? 'monospace' : 'inherit',
+                        background: row.highlight ? '#EFF6FF' : 'transparent',
+                        border: row.highlight ? '1px solid #BFDBFE' : 'none',
+                        borderRadius: row.highlight ? '10px' : 0,
+                        padding: row.highlight ? '12px 16px' : 0,
+                      }}>
+                        {row.value}
+                      </div>
                     </div>
-                    <div className="md:col-span-3 text-xs text-slate-700 font-medium leading-relaxed">
-                      {details.reason}
-                    </div>
-                  </div>
-
-                  {/* Evidence */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-2 border-b border-slate-50 pb-3">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                      <Activity size={12} className="text-slate-400 shrink-0" />
-                      <span>Telemetry Evidence</span>
-                    </div>
-                    <div className="md:col-span-3 text-xs text-slate-600 leading-relaxed font-mono">
-                      {details.evidence}
-                    </div>
-                  </div>
-
-                  {/* Recommended Action */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-2 pb-1">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                      <FileText size={12} className="text-slate-400 shrink-0" />
-                      <span>Recommended Action</span>
-                    </div>
-                    <div className="md:col-span-3 text-xs text-blue-900 bg-blue-50/50 border border-blue-100 rounded p-3 leading-relaxed font-semibold">
-                      {details.action}
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Hydrogeologist Observational sign-off */}
-              <div className="card p-5">
-                <SectionHeader title="Officer Dispatch Observations" subtitle="Hydrological logs and observations to attach to command record" className="mb-3.5" />
+              {/* Officer notes */}
+              <div className="card" style={{ padding: '24px' }}>
+                <SectionHeader
+                  title="Officer Dispatch Observations"
+                  subtitle="Hydrological logs to attach to command record"
+                />
                 <textarea
                   value={officerNote}
                   onChange={e => setOfficerNote(e.target.value)}
                   placeholder="Enter hydrological observations, operational exceptions, or local field coordinates..."
-                  rows={3}
-                  className="w-full bg-white border border-slate-200 rounded-md px-3.5 py-2.5 text-xs text-slate-700 placeholder-slate-400 resize-none outline-none focus:border-blue-600/50"
+                  rows={4}
+                  style={{
+                    width: '100%', marginTop: '16px', background: '#F8FAFC',
+                    border: '1px solid #E8EDF3', borderRadius: '10px',
+                    padding: '14px 16px', fontSize: '13px', color: '#334155',
+                    resize: 'none', outline: 'none', fontFamily: 'inherit',
+                    lineHeight: 1.6, boxSizing: 'border-box',
+                  }}
                 />
               </div>
 
-              {/* Action Buttons */}
-              <div className="card p-4">
-                <SectionHeader title="Directive Action Dispatch" subtitle="Approve, Modify or Reject this recommended directive" className="mb-3.5" />
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="primary"
-                    onClick={() => setConfirmAction({ action: 'approved', label: 'Approve' })}
-                    className="flex-1 text-xs py-2 shadow-sm"
-                  >
+              {/* Action dispatch */}
+              <div className="card" style={{ padding: '24px' }}>
+                <SectionHeader
+                  title="Directive Action Dispatch"
+                  subtitle="Approve, Modify or Reject this recommended directive"
+                />
+                <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                  <Button variant="primary" onClick={() => setConfirmAction({ action: 'approved', label: 'Approve' })} fullWidth>
                     Approve & Dispatch
                   </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => setModifyModalOpen(true)}
-                    className="flex-1 text-xs py-2 shadow-sm"
-                  >
+                  <Button variant="secondary" onClick={() => setModifyModalOpen(true)} fullWidth>
                     Modify Directive
                   </Button>
-                  <Button
-                    variant="danger"
-                    onClick={() => setConfirmAction({ action: 'rejected', label: 'Reject' })}
-                    className="flex-1 text-xs py-2 shadow-sm"
-                  >
+                  <Button variant="danger" onClick={() => setConfirmAction({ action: 'rejected', label: 'Reject' })} fullWidth>
                     Reject Directive
                   </Button>
                 </div>
-
                 {decisions[selectedRec.id] && (
-                  <div className="mt-3.5 flex items-center gap-2 text-xs text-slate-500 bg-slate-50 border border-slate-100 rounded p-2.5">
-                    <AlertCircle size={14} className="text-slate-400" />
-                    <span>Decision logged:</span>
+                  <div style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '10px', background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '10px', padding: '12px 16px' }}>
+                    <AlertCircle size={15} color="#94A3B8" />
+                    <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 600 }}>Decision logged:</span>
                     <StatusBadge variant={decisions[selectedRec.id]} size="sm" />
                   </div>
                 )}
               </div>
             </>
           ) : (
-            <div className="card p-8 text-center text-xs text-slate-400 font-medium">
-              Select an active telemetry directive from the left list to review details.
+            <div className="card" style={{ padding: '48px', textAlign: 'center', fontSize: '13.5px', color: '#94A3B8', fontWeight: 500 }}>
+              Select an active telemetry directive to review details.
             </div>
           )}
 
-          {/* Workflow dispatch timeline */}
-          <div className="card p-5">
-            <SectionHeader title="Directive Log History" subtitle="Central hydrogeologist directive dispatch timeline" className="mb-4" />
-            <Timeline events={decisionTimeline as any} />
+          {/* Timeline */}
+          <div className="card" style={{ padding: '24px' }}>
+            <SectionHeader
+              title="Directive Log History"
+              subtitle="Central hydrogeologist directive dispatch timeline"
+            />
+            <div style={{ marginTop: '16px' }}>
+              <Timeline events={decisionTimeline as any} />
+            </div>
           </div>
         </div>
 
@@ -262,21 +261,25 @@ export function DecisionSupport() {
           </>
         }
       >
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Amended Recommended Action</label>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
+              Amended Recommended Action
+            </label>
             <textarea
               defaultValue={selectedRec?.details}
               rows={3}
-              className="w-full bg-white border border-slate-200 rounded-md px-3 py-2 text-xs text-slate-800 resize-none outline-none focus:border-blue-600/50"
+              style={{ width: '100%', background: '#F8FAFC', border: '1px solid #E8EDF3', borderRadius: '10px', padding: '12px 16px', fontSize: '13px', color: '#334155', resize: 'none', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Amendment Reason Logs</label>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
+              Amendment Reason Logs
+            </label>
             <input
               type="text"
               placeholder="Observation reason for modification..."
-              className="w-full bg-white border border-slate-200 rounded-md px-3 py-2.5 text-xs text-slate-800 outline-none focus:border-blue-600/50"
+              style={{ width: '100%', background: '#F8FAFC', border: '1px solid #E8EDF3', borderRadius: '10px', padding: '12px 16px', fontSize: '13px', color: '#334155', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
             />
           </div>
         </div>
@@ -288,7 +291,7 @@ export function DecisionSupport() {
         onClose={() => setConfirmAction(null)}
         onConfirm={() => confirmAction && handleDecision(confirmAction.action)}
         title={`${confirmAction?.label} Directive`}
-        message={`Are you sure you want to perform the ${confirmAction?.label?.toLowerCase()} action for ${selectedRec?.districtName}? This action will be permanently logged in the national command record.`}
+        message={`Are you sure you want to ${confirmAction?.label?.toLowerCase()} the directive for ${selectedRec?.districtName}? This will be permanently logged in the national command record.`}
         confirmLabel={confirmAction?.label === 'Approve' ? 'Approve & Dispatch' : confirmAction?.label}
         confirmVariant={confirmAction?.action === 'rejected' ? 'danger' : 'primary'}
       />

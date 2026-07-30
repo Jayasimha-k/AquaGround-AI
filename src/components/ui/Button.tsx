@@ -27,9 +27,9 @@ const VARIANT_STYLES: Record<ButtonVariant, string> = {
 };
 
 const SIZE_STYLES: Record<ButtonSize, string> = {
-  sm: 'px-3 py-1.5 text-xs gap-1.5 rounded',
-  md: 'px-4 py-2 text-xs gap-2 rounded-md',
-  lg: 'px-5 py-2.5 text-sm gap-2 rounded-md',
+  sm: 'px-3.5 py-1.5 text-xs gap-1.5 rounded-md font-semibold tracking-wide',
+  md: 'px-4 py-2 text-[12.5px] gap-2 rounded-lg font-semibold tracking-wide',
+  lg: 'px-5 py-2.5 text-sm gap-2.5 rounded-lg font-semibold tracking-wide',
 };
 
 export function Button({ variant = 'primary', size = 'md', icon, iconPosition = 'left', loading = false, fullWidth = false, children, className = '', disabled, onClick, ...rest }: ButtonProps) {

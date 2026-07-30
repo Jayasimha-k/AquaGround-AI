@@ -43,65 +43,69 @@ export function Analytics() {
       <div className="space-y-6">
         
         {/* Question Selector Tabs */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-white p-3 border border-slate-200 rounded-md shadow-sm select-none">
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '10px',
+          background: '#FFFFFF', padding: '16px',
+          border: '1px solid #E8EDF3', borderRadius: '14px',
+          boxShadow: '0 1px 3px rgba(15,23,42,0.06)',
+        }}>
           {questions.map(q => {
             const isSelected = activeQuestion === q.id;
             return (
               <button
                 key={q.id}
                 onClick={() => setActiveQuestion(q.id as QuestionTab)}
-                className={[
-                  'flex items-center gap-2.5 px-3 py-2.5 rounded text-left transition-all cursor-pointer',
-                  isSelected 
-                    ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-100/50' 
-                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                ].join(' ')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  padding: '12px 16px', borderRadius: '10px', textAlign: 'left',
+                  cursor: 'pointer', border: 'none',
+                  background: isSelected ? '#EFF6FF' : 'none',
+                  outline: isSelected ? '1.5px solid #BFDBFE' : 'none',
+                  transition: 'all 0.15s',
+                }}
               >
-                <q.icon size={15} className={isSelected ? 'text-blue-700' : 'text-slate-400'} />
-                <span className="text-xs">{q.label}</span>
+                <q.icon size={16} style={{ color: isSelected ? '#2563EB' : '#94A3B8', flexShrink: 0 }} />
+                <span style={{ fontSize: '12.5px', fontWeight: isSelected ? 700 : 500, color: isSelected ? '#1D4ED8' : '#475569', lineHeight: 1.3 }}>
+                  {q.label}
+                </span>
               </button>
             );
           })}
         </div>
 
         {/* Diagnostic Response Panel */}
-        <div className="card p-6 bg-white space-y-6">
-          <div className="pb-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="card" style={{ background: '#FFFFFF', padding: '28px' }}>
+          <div style={{ paddingBottom: '20px', borderBottom: '1px solid #F1F5F9', marginBottom: '24px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
             <div>
-              <h2 className="text-sm font-bold text-slate-900">{currentQ.title}</h2>
-              <p className="text-xs text-slate-500 mt-1">{currentQ.sub}</p>
+              <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>{currentQ.title}</h2>
+              <p style={{ fontSize: '13px', color: '#64748B', marginTop: '6px', fontWeight: 500 }}>{currentQ.sub}</p>
             </div>
-            
-            {/* Context Badge */}
-            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded w-fit">
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#2563EB', background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '4px 12px', borderRadius: '6px', flexShrink: 0 }}>
               Analytical Diagnostic
             </span>
           </div>
 
-          {/* ── QUESTION 1: Water Table Depletion ──────────────────────── */}
           {activeQuestion === 'depletion' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <WaterLevelChart 
-                  labels={MONTHLY_WATER_LEVEL_DATA.labels} 
-                  depthData={MONTHLY_WATER_LEVEL_DATA.depth} 
-                  height={240} 
-                />
-              </div>
-              <div className="bg-slate-50 border border-slate-100 rounded p-4 text-xs flex flex-col justify-between">
-                <div className="space-y-3">
-                  <p className="font-bold text-slate-700 uppercase tracking-widest text-[9px] flex items-center gap-1.5">
-                    <Droplets size={11} className="text-blue-600" />
-                    Hydrological Timeline
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '24px' }}>
+              <WaterLevelChart
+                labels={MONTHLY_WATER_LEVEL_DATA.labels}
+                depthData={MONTHLY_WATER_LEVEL_DATA.depth}
+                height={260}
+              />
+              <div style={{ background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px', margin: '0 0 12px 0' }}>
+                    <Droplets size={12} color="#3B82F6" /> Hydrological Timeline
                   </p>
-                  <p className="text-slate-600 leading-relaxed font-medium">
-                    Analysis indicates a consistent downward trajectory of the regional water table, descending to <span className="font-bold text-slate-900">22.8m BGL</span> in recent audits. 
-                    Baseline data shows standard depletion patterns within crop irrigation belts.
+                  <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.7, margin: 0 }}>
+                    Analysis indicates a consistent downward trajectory, descending to{' '}
+                    <strong style={{ color: '#0F172A' }}>22.8m BGL</strong> in recent audits.
+                    Baseline data shows standard depletion in crop irrigation belts.
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-200/50 flex items-center justify-between text-[10px] text-slate-400">
+                <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #E8EDF3', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#94A3B8', fontWeight: 500 }}>
                   <span>Audit Horizon: 12-Month</span>
-                  <span className="text-blue-600 font-semibold cursor-pointer flex items-center gap-0.5">District Maps <ArrowUpRight size={10} /></span>
+                  <span style={{ color: '#2563EB', fontWeight: 700, cursor: 'pointer' }}>District Maps →</span>
                 </div>
               </div>
             </div>

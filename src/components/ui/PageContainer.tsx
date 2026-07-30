@@ -1,5 +1,5 @@
 // =============================================================================
-// PageContainer — Light enterprise page wrapper
+// PageContainer — Professional enterprise page wrapper
 // =============================================================================
 
 import React, { useRef, useEffect } from 'react';
@@ -14,28 +14,81 @@ interface PageContainerProps {
   noPadding?: boolean;
 }
 
-export function PageContainer({ children, className = '', title, subtitle, actions, noPadding = false }: PageContainerProps) {
-  const ref = useRef<HTMLDivElement>(null);
+export function PageContainer({
+  children,
+  className = '',
+  title,
+  subtitle,
+  actions,
+  noPadding = false,
+}: PageContainerProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!ref.current) return;
-    animate(ref.current, { opacity: [0, 1], translateY: [6, 0], duration: 280, ease: 'outCubic' });
+    if (!contentRef.current) return;
+    animate(contentRef.current, {
+      opacity: [0, 1], translateY: [10, 0], duration: 320, ease: 'outCubic',
+    });
   }, []);
 
   return (
-    <div ref={ref} className={`flex flex-col h-full overflow-auto bg-gray-50 ${className}`} style={{ opacity: 0 }}>
-      {/* Page Header */}
+    <div className={`flex flex-col min-h-full ${className}`} style={{ background: '#EEF2F7' }}>
+
+      {/* ── Page Header ──────────────────────────────────────────────────────── */}
       {(title || actions) && (
-        <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200 shrink-0">
+        <div
+          style={{
+            background: '#FFFFFF',
+            borderBottom: '1px solid #E2E8F0',
+            boxShadow: '0 1px 3px rgba(15,23,42,0.06)',
+            padding: '20px 32px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexShrink: 0,
+            position: 'sticky',
+            top: 0,
+            zIndex: 10,
+          }}
+        >
           <div>
-            {title && <h1 className="text-base font-semibold text-gray-900">{title}</h1>}
-            {subtitle && <p className="mt-0.5 text-xs text-gray-500">{subtitle}</p>}
+            {title && (
+              <h1 style={{
+                fontSize: '18px',
+                fontWeight: 800,
+                color: '#0F172A',
+                letterSpacing: '-0.3px',
+                lineHeight: 1.3,
+                margin: 0,
+              }}>
+                {title}
+              </h1>
+            )}
+            {subtitle && (
+              <p style={{
+                marginTop: '4px',
+                fontSize: '12.5px',
+                color: '#64748B',
+                fontWeight: 500,
+                lineHeight: 1.4,
+              }}>
+                {subtitle}
+              </p>
+            )}
           </div>
-          {actions && <div className="flex items-center gap-2">{actions}</div>}
+          {actions && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, marginLeft: '24px' }}>
+              {actions}
+            </div>
+          )}
         </div>
       )}
-      {/* Content */}
-      <div className={`flex-1 overflow-auto ${noPadding ? '' : 'p-6'}`}>
+
+      {/* ── Page Content ─────────────────────────────────────────────────────── */}
+      <div
+        ref={contentRef}
+        style={{ opacity: 0, flex: 1, padding: noPadding ? 0 : '28px 32px' }}
+      >
         {children}
       </div>
     </div>

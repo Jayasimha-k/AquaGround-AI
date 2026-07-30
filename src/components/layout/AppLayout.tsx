@@ -6,24 +6,36 @@ import { AIAssistant } from '../ui/AIAssistant';
 
 export function AppLayout() {
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-50">
-      {/* Sidebar */}
-      <div className="relative flex shrink-0">
-        <Sidebar />
-      </div>
+    <div style={{
+      display: 'flex',
+      height: '100vh',
+      width: '100vw',
+      overflow: 'hidden',
+      background: '#EEF2F7',
+    }}>
+      {/* ── Sidebar ───────────────────────────────────────────────────── */}
+      <Sidebar />
 
-      {/* Main content area */}
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+      {/* ── Main column ───────────────────────────────────────────────── */}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        minWidth: 0,
+        overflow: 'hidden',
+      }}>
         <TopBar />
-        <main className="flex-1 overflow-hidden">
+        <main style={{
+          flex: 1,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+        }}>
           <Outlet />
         </main>
       </div>
 
-      {/* Notification panel (portal-like fixed) */}
+      {/* ── Overlays ──────────────────────────────────────────────────── */}
       <NotificationPanel />
-
-      {/* Floating AI Command Assistant */}
       <AIAssistant />
     </div>
   );

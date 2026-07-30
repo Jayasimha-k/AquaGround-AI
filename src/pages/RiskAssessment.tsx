@@ -3,11 +3,10 @@
 // =============================================================================
 
 import React, { useState } from 'react';
-import { AlertTriangle, MapPin, Search, Activity, Droplets, Clock, ShieldAlert, ArrowRight } from 'lucide-react';
+import { AlertTriangle, ShieldCheck } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { PageContainer } from '@/components/ui/PageContainer';
-import { Card } from '@/components/ui/GlassCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Timeline } from '@/components/ui/Timeline';
@@ -28,20 +27,31 @@ const alertTimelineEvents = MOCK_ALERTS.slice(0, 5).map(a => ({
 export function RiskAssessment() {
   const [selectedId, setSelectedId] = useState(MOCK_DISTRICTS[0].id);
   const selectedDistrict = MOCK_DISTRICTS.find(d => d.id === selectedId) || MOCK_DISTRICTS[0];
-
   const criticalDistricts = MOCK_DISTRICTS.filter(d => d.riskLevel === 'critical' || d.riskLevel === 'high');
+
+  const riskBgMap: Record<string, string> = {
+    critical: '#FEF2F2',
+    high:     '#FFF7ED',
+    moderate: '#EFF6FF',
+    low:      '#ECFDF5',
+    stable:   '#ECFDF5',
+  };
 
   return (
     <PageContainer
       title="Regional Risk Monitor"
       subtitle="Hydrological risk triaging, critical basins, and escalation pipelines"
     >
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6 h-full min-h-[580px]">
+      {/* 3-column grid: sidebar | map+details | timeline */}
+      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr 300px', gap: '20px', minHeight: 600 }}>
 
-        {/* ── Left Column: Active Triage Escalation Districts ───────────────── */}
-        <div className="xl:col-span-1.5 space-y-4">
-          <SectionHeader title="Basin Action Queue" subtitle="Regions in critical depletion zone" />
-          <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
+        {/* ── Left: Basin Action Queue ──────────────────────────────────── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <SectionHeader
+            title="Basin Action Queue"
+            subtitle="Regions in critical depletion zone"
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto', maxHeight: 580 }}>
             {criticalDistricts.map(d => {
               const isSelected = d.id === selectedId;
               const riskColor = RISK_COLORS[d.riskLevel];
@@ -49,23 +59,37 @@ export function RiskAssessment() {
                 <div
                   key={d.id}
                   onClick={() => setSelectedId(d.id)}
-                  className={[
-                    'cursor-pointer rounded border p-4 transition-all duration-150 bg-white border-l-4',
-                    isSelected ? 'ring-2 ring-blue-600/20 border-blue-600 shadow-sm' : 'border-slate-200 hover:shadow-sm'
-                  ].join(' ')}
-                  style={{ borderLeftColor: riskColor }}
+                  style={{
+                    background: isSelected ? riskBgMap[d.riskLevel] || '#F8FAFC' : '#FFFFFF',
+                    border: `1px solid ${isSelected ? riskColor : '#E8EDF3'}`,
+                    borderLeft: `4px solid ${riskColor}`,
+                    borderRadius: '12px',
+                    padding: '16px',
+                    cursor: 'pointer',
+                    boxShadow: isSelected
+                      ? `0 4px 16px ${riskColor}22`
+                      : '0 1px 3px rgba(15,23,42,0.06)',
+                    transition: 'all 0.15s',
+                  }}
                 >
-                  <div className="flex items-start justify-between mb-2">
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <div>
-                      <h4 className="font-semibold text-slate-900 text-xs">{d.name}</h4>
-                      <p className="text-[10px] text-slate-400 mt-0.5">{d.state}</p>
+                      <h4 style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', margin: 0, lineHeight: 1.2 }}>
+                        {d.name}
+                      </h4>
+                      <p style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px', fontWeight: 500 }}>
+                        {d.state}
+                      </p>
                     </div>
                     <StatusBadge variant={d.riskLevel} size="sm" />
                   </div>
-                  
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono mt-3">
-                    <span>Depth: {d.groundwaterDepth}m</span>
-                    <span className="text-red-600 font-semibold">{d.trend === 'down' ? 'Depleting' : 'Stable'}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 600 }}>
+                    <span style={{ color: '#64748B', fontFamily: 'monospace' }}>
+                      Depth: {d.groundwaterDepth}m BGL
+                    </span>
+                    <span style={{ color: d.trend === 'down' ? '#EF4444' : '#10B981' }}>
+                      {d.trend === 'down' ? '↓ Depleting' : '→ Stable'}
+                    </span>
                   </div>
                 </div>
               );
@@ -73,36 +97,43 @@ export function RiskAssessment() {
           </div>
         </div>
 
-        {/* ── Center Column: Interactive India Risk Map & Metrics ────────── */}
-        <div className="xl:col-span-2.5 space-y-5">
-          {/* Tactical Risk Map centerpiece */}
-          <div className="card p-4 bg-white">
-            <SectionHeader title="India Risk Mapping" subtitle="Geographic view of over-extracted aquifer regions" />
-            <div className="h-64 w-full rounded border border-slate-200 overflow-hidden mt-3 relative z-10">
+        {/* ── Center: Map + Detail Metrics ─────────────────────────────── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+          {/* Risk Map */}
+          <div className="card" style={{ padding: '24px' }}>
+            <SectionHeader
+              title="India Risk Mapping"
+              subtitle="Geographic view of over-extracted aquifer regions"
+            />
+            <div style={{
+              height: 260, width: '100%', borderRadius: '10px',
+              border: '1px solid #E8EDF3', overflow: 'hidden', marginTop: '16px',
+              position: 'relative', zIndex: 10,
+            }}>
               <MapContainer
                 center={[22.5937, 78.9629]}
                 zoom={4}
                 zoomControl={false}
-                className="w-full h-full"
+                style={{ width: '100%', height: '100%' }}
               >
-                <TileLayer
-                  url={MAP_CONFIG.TILE_URL}
-                  attribution=""
-                />
+                <TileLayer url={MAP_CONFIG.TILE_URL} attribution="" />
                 {criticalDistricts.map(d => (
                   <CircleMarker
                     key={d.id}
                     center={[d.coordinates.lat, d.coordinates.lng]}
-                    radius={selectedId === d.id ? 8 : 6}
+                    radius={selectedId === d.id ? 9 : 6}
                     pathOptions={{
                       color: RISK_COLORS[d.riskLevel],
                       fillColor: RISK_COLORS[d.riskLevel],
-                      fillOpacity: 0.8,
-                      weight: selectedId === d.id ? 2 : 1,
+                      fillOpacity: 0.85,
+                      weight: selectedId === d.id ? 2.5 : 1.5,
                     }}
                   >
                     <Tooltip direction="top" opacity={1}>
-                      <span className="font-bold text-xs">{d.name} ({d.state})</span>
+                      <span style={{ fontWeight: 700, fontSize: '12px' }}>
+                        {d.name} ({d.state})
+                      </span>
                     </Tooltip>
                   </CircleMarker>
                 ))}
@@ -110,42 +141,49 @@ export function RiskAssessment() {
             </div>
           </div>
 
-          {/* Detailed Triage Metrics Card */}
-          <div className="card p-5 bg-white space-y-4">
-            <div className="pb-3 border-b border-slate-100 flex items-center justify-between">
+          {/* Diagnostic detail card */}
+          <div className="card" style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid #F1F5F9', marginBottom: '20px' }}>
               <div>
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">{selectedDistrict.name} Diagnostics</h3>
-                <p className="text-[10px] text-slate-500 mt-0.5">{selectedDistrict.state}</p>
+                <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <ShieldCheck size={16} color="#3B82F6" />
+                  {selectedDistrict.name} Diagnostics
+                </h3>
+                <p style={{ fontSize: '12px', color: '#64748B', marginTop: '4px', fontWeight: 500 }}>{selectedDistrict.state}</p>
               </div>
               <StatusBadge variant={selectedDistrict.riskLevel} />
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-              <div className="bg-slate-50 border border-slate-100 rounded p-2.5">
-                <div className="text-slate-400 font-medium">BGL Depth</div>
-                <p className="font-bold text-slate-800 mt-0.5">{selectedDistrict.groundwaterDepth} m BGL</p>
-              </div>
-              <div className="bg-slate-50 border border-slate-100 rounded p-2.5">
-                <div className="text-slate-400 font-medium">Annual Deficit</div>
-                <p className="font-bold text-red-600 mt-0.5">{(selectedDistrict.extractionRate - selectedDistrict.rechargeRate).toFixed(1)} MCM</p>
-              </div>
-              <div className="bg-slate-50 border border-slate-100 rounded p-2.5">
-                <div className="text-slate-400 font-medium">Active Nodes</div>
-                <p className="font-bold text-slate-800 mt-0.5">{selectedDistrict.activeSensors} DWLR</p>
-              </div>
-              <div className="bg-slate-50 border border-slate-100 rounded p-2.5">
-                <div className="text-slate-400 font-medium">Trend Rate</div>
-                <p className="font-bold text-slate-800 mt-0.5">{(selectedDistrict.groundwaterDepth * 0.05).toFixed(1)} m/month</p>
-              </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '14px' }}>
+              {[
+                { label: 'BGL Depth',      value: `${selectedDistrict.groundwaterDepth} m`, color: '#0F172A' },
+                { label: 'Annual Deficit', value: `${(selectedDistrict.extractionRate - selectedDistrict.rechargeRate).toFixed(1)} MCM`, color: '#EF4444' },
+                { label: 'Active Nodes',   value: `${selectedDistrict.activeSensors} DWLR`,  color: '#0F172A' },
+                { label: 'Trend Rate',     value: `${(selectedDistrict.groundwaterDepth * 0.05).toFixed(1)} m/mo`, color: '#0F172A' },
+              ].map((m, i) => (
+                <div key={i} style={{ background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '10px', padding: '14px 16px' }}>
+                  <p style={{ fontSize: '10.5px', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                    {m.label}
+                  </p>
+                  <p style={{ fontSize: '16px', fontWeight: 800, color: m.color, marginTop: '6px', lineHeight: 1 }}>
+                    {m.value}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* ── Right Column: Escalation Pipeline Log Timeline ────────────── */}
-        <div className="xl:col-span-1 space-y-4">
-          <div className="card p-5 bg-white h-full">
-            <SectionHeader title="Recent Risk Escalations" subtitle="Basin alerts timeline logs" className="mb-4" />
-            <Timeline events={alertTimelineEvents} />
+        {/* ── Right: Escalation Timeline ────────────────────────────────── */}
+        <div>
+          <div className="card" style={{ padding: '24px', height: '100%' }}>
+            <SectionHeader
+              title="Risk Escalations"
+              subtitle="Basin alerts timeline log"
+            />
+            <div style={{ marginTop: '16px' }}>
+              <Timeline events={alertTimelineEvents} />
+            </div>
           </div>
         </div>
 
