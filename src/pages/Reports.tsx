@@ -1,7 +1,3 @@
-// =============================================================================
-// Module 7: Reports — Administrative Document Workspace
-// =============================================================================
-
 import React, { useState } from 'react';
 import { FileText, Download, Search, Printer, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { PageContainer } from '@/components/ui/PageContainer';
@@ -9,6 +5,7 @@ import { SectionHeader } from '@/components/ui/SectionHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { MOCK_REPORTS } from '@/constants/mockData';
+import { generateCGWBReportPDF } from '@/services/pdfReportService';
 import type { Report } from '@/types';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -32,6 +29,23 @@ export function Reports() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
 
+  const handleGeneratePDF = (districtName: string = "Jaipur") => {
+    generateCGWBReportPDF({
+      district: districtName,
+      state: "Rajasthan",
+      water_level_mbgl: 18.4,
+      soe_pct: 142.5,
+      gsi_score: 42,
+      status: "Critical Moratorium",
+      ai_summary: "Comprehensive DWLR sensor telemetry indicates rapid groundwater table decline in Jaipur South block due to agricultural over-extraction and monsoon deficit.",
+      recommendations: [
+        "Enforce strict moratorium on commercial tube-well boring in critical blocks.",
+        "Construct 50 artificial recharge check dams along distributary stream channels.",
+        "Mandate micro-irrigation adoption (drip/sprinkler) for high-water crops."
+      ]
+    });
+  };
+
   const filtered = MOCK_REPORTS.filter(r => {
     const matchSearch = r.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchFilter = filterType === 'all' || r.type === filterType;
@@ -42,15 +56,15 @@ export function Reports() {
 
   return (
     <PageContainer
-      title="Survey Document Repository"
-      subtitle="Access generated hydrological summaries, district-level audits, and annual water tables reports"
+      title="CGWB Survey & Audit Repository"
+      subtitle="Access generated hydrological summaries, district-level audits, and official CGWB PDF reports"
       actions={
         <div style={{ display: 'flex', gap: '10px' }}>
           <Button variant="secondary" size="sm" icon={<Printer size={14} />} onClick={() => window.print()}>
             Print View
           </Button>
-          <Button variant="primary" size="sm" icon={<FileText size={14} />}>
-            Generate Survey
+          <Button variant="primary" size="sm" icon={<FileText size={14} />} onClick={() => handleGeneratePDF(selected.title.split(' ')[0] || "Jaipur")}>
+            Generate CGWB Report PDF
           </Button>
         </div>
       }
@@ -221,7 +235,7 @@ export function Reports() {
             <FileText size={36} style={{ color: '#93C5FD' }} />
             <div style={{ textAlign: 'center' }}>
               <p style={{ fontSize: '13px', fontWeight: 700, color: '#334155', margin: '0 0 4px 0' }}>
-                Hydrological PDF Audit
+                CGWB Official Hydrological PDF Audit
               </p>
               <p style={{ fontSize: '11.5px', color: '#94A3B8', margin: 0, fontFamily: 'monospace' }}>
                 {selected.fileSize} · {selected.pages} pages
@@ -238,9 +252,9 @@ export function Reports() {
               variant="primary"
               icon={<Download size={15} />}
               fullWidth
-              disabled={selected.status !== 'ready'}
+              onClick={() => handleGeneratePDF(selected.title.split(' ')[0] || "Jaipur")}
             >
-              {selected.status === 'generating' ? 'Compiling PDF...' : 'Download Document'}
+              Export CGWB Report PDF
             </Button>
             <Button variant="secondary" icon={<Printer size={15} />} onClick={() => window.print()} />
           </div>
@@ -250,3 +264,4 @@ export function Reports() {
     </PageContainer>
   );
 }
+

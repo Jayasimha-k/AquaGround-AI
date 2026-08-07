@@ -3,13 +3,14 @@
 // =============================================================================
 
 import React, { useState } from 'react';
-import { Brain, AlertCircle, ChevronRight, FileText, Activity, ShieldAlert } from 'lucide-react';
+import { Brain, AlertCircle, ChevronRight, FileText, Activity, ShieldAlert, Sliders } from 'lucide-react';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { Timeline } from '@/components/ui/Timeline';
 import { Modal, ConfirmDialog } from '@/components/ui/Modal';
+import { ScenarioSimulator } from '@/components/ScenarioSimulator';
 import { MOCK_RECOMMENDATIONS, MOCK_DECISIONS, MOCK_DISTRICTS } from '@/constants/mockData';
 import type { AIRecommendation, DecisionStatus } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
@@ -71,8 +72,16 @@ export function DecisionSupport() {
   return (
     <PageContainer
       title="Decision Support Workspace"
-      subtitle="Hydrological directives review panel and directive dispatch command (Human-in-the-Loop)"
+      subtitle="Hydrological directives review panel, policy scenario simulator, and dispatch command"
     >
+      {/* ── Top: Policy Scenario Simulator ── */}
+      <div style={{ marginBottom: '28px' }}>
+        <ScenarioSimulator
+          districtName={selectedRec?.districtName || "Jaipur"}
+          initialDepthMbgl={18.4}
+        />
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '20px', alignItems: 'start' }}>
 
         {/* ── Left: Directives List ─────────────────────────────────────── */}

@@ -259,8 +259,25 @@ export function Dashboard() {
                 Baseline deviations calculated at 09:30 IST
               </p>
             </div>
+
+            {/* Live Open-Meteo Satellite Data Stream Badge */}
+            <div style={{ marginTop: '16px', background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '12px', padding: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#2563EB', animation: 'pulse 2s infinite' }} />
+                  Live Free APIs Connected
+                </span>
+                <span style={{ fontSize: '10px', fontWeight: 700, background: '#DBEAFE', color: '#1E40AF', padding: '2px 7px', borderRadius: '4px' }}>
+                  Open-Meteo + Gemini
+                </span>
+              </div>
+              <p style={{ fontSize: '12px', color: '#1E293B', lineHeight: 1.5, margin: 0, fontWeight: 500 }}>
+                Receiving real-time live precipitation, temperature, and topsoil moisture (0-7cm) telemetry directly from the free <strong>Open-Meteo REST API</strong> & Google Gemini XAI.
+              </p>
+            </div>
           </div>
         </div>
+
 
         {/* ── MIDDLE: Alerts Queue ──────────────────────────────────────────────── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

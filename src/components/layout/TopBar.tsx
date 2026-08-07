@@ -3,17 +3,20 @@
 // =============================================================================
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, Bell, RefreshCw, ChevronDown, X, User } from 'lucide-react';
+import { Search, Bell, RefreshCw, ChevronDown, X, User, LogOut, ShieldCheck, UserCheck } from 'lucide-react';
 import { animate } from 'animejs';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { MOCK_ALERTS } from '@/constants/mockData';
 import { formatDistanceToNow } from 'date-fns';
 
 export function TopBar() {
   const { state, toggleNotificationPanel, markNotificationsRead } = useApp();
+  const { currentUser, logout } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const searchWrapRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -58,6 +61,7 @@ export function TopBar() {
       boxShadow: '0 1px 3px rgba(15,23,42,0.05)',
       flexShrink: 0,
       zIndex: 20,
+      position: 'relative'
     }}>
 
       {/* Breadcrumb */}
@@ -162,32 +166,77 @@ export function TopBar() {
       <div style={{ height: '20px', width: '1px', background: '#E2E8F0', flexShrink: 0 }} />
 
       {/* Profile */}
-      <div
-        style={{
-          display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
-          padding: '6px 12px', borderRadius: '10px', border: '1px solid transparent',
-          transition: 'all 0.15s',
-        }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F8FAFC'; (e.currentTarget as HTMLElement).style.borderColor = '#E2E8F0'; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; (e.currentTarget as HTMLElement).style.borderColor = 'transparent'; }}
-      >
-        <div style={{
-          width: 30, height: 30, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #60A5FA, #2563EB)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 2px 6px rgba(37,99,235,0.3)',
-        }}>
-          <User size={13} color="#FFFFFF" />
+      <div style={{ position: 'relative' }}>
+        <div
+          onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
+            padding: '6px 12px', borderRadius: '10px', border: '1px solid #E2E8F0',
+            background: profileMenuOpen ? '#F8FAFC' : 'transparent',
+            transition: 'all 0.15s',
+          }}
+        >
+          <div style={{
+            width: 30, height: 30, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #60A5FA, #2563EB)',
+            color: '#FFFFFF', fontSize: '11px', fontWeight: 800,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 6px rgba(37,99,235,0.3)',
+          }}>
+            {currentUser?.avatar || 'AV'}
+          </div>
+          <div>
+            <p style={{ fontSize: '12.5px', fontWeight: 700, color: '#1E293B', lineHeight: 1.2, margin: 0 }}>
+              {currentUser?.name || 'Dr. Anand Verma'}
+            </p>
+            <p style={{ fontSize: '10.5px', color: '#64748B', fontWeight: 500, lineHeight: 1.2, margin: 0 }}>
+              {currentUser?.roleTitle || 'Administrator'}
+            </p>
+          </div>
+          <ChevronDown size={13} color="#94A3B8" />
         </div>
-        <div>
-          <p style={{ fontSize: '12.5px', fontWeight: 600, color: '#1E293B', lineHeight: 1.2 }}>Dr. Anand Verma</p>
-          <p style={{ fontSize: '10.5px', color: '#94A3B8', fontWeight: 500, lineHeight: 1.2 }}>Administrator</p>
-        </div>
-        <ChevronDown size={13} color="#94A3B8" />
+
+        {/* Profile Dropdown Menu */}
+        {profileMenuOpen && (
+          <div
+            style={{
+              position: 'absolute', top: '100%', right: 0, marginTop: '8px',
+              width: '240px', background: '#FFFFFF', border: '1px solid #E2E8F0',
+              borderRadius: '12px', boxShadow: '0 10px 25px rgba(15,23,42,0.15)',
+              padding: '12px', zIndex: 1000,
+            }}
+          >
+            <div style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '10px', marginBottom: '8px' }}>
+              <p style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                {currentUser?.email}
+              </p>
+              <p style={{ fontSize: '11px', color: '#64748B', margin: '2px 0 0 0' }}>
+                {currentUser?.department}
+              </p>
+            </div>
+            
+            <button
+              onClick={() => {
+                setProfileMenuOpen(false);
+                logout();
+              }}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+                padding: '8px 10px', borderRadius: '8px', border: 'none',
+                background: '#FEF2F2', color: '#EF4444', fontSize: '12px',
+                fontWeight: 700, cursor: 'pointer', transition: 'background 0.15s'
+              }}
+            >
+              <LogOut size={14} />
+              <span>Log Out & Lock Workspace</span>
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );
 }
+
 
 // ── Notification Panel ─────────────────────────────────────────────────────────
 export function NotificationPanel() {

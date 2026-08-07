@@ -5,9 +5,11 @@ from models.schemas import (
     ExplainRiskRequest, ExplainRiskResponse,
     GenerateReportRequest, GenerateReportResponse,
     RecommendationSummaryRequest, RecommendationSummaryResponse,
-    SummarizeDistrictRequest, SummarizeDistrictResponse
+    SummarizeDistrictRequest, SummarizeDistrictResponse,
+    ForecastRequest, ForecastResponse
 )
 from services.gemini_service import gemini_service
+from services.forecasting_service import forecasting_service
 
 router = APIRouter(prefix="/api/ai", tags=["AI Assistant"])
 
@@ -72,3 +74,37 @@ async def summarize_district(request: SummarizeDistrictRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/forecast", response_model=ForecastResponse)
+async def get_forecast(request: ForecastRequest):
+    try:
+        forecast_data = forecasting_service.generate_forecast(
+            district=request.district,
+            rainfall_trend_pct=request.rainfall_trend_pct or 0.0,
+            extraction_change_pct=request.extraction_change_pct or 0.0
+        )
+        
+        # Try to enrich with Gemini XAI explanation if available
+        try:
+            xai_prompt = (
+                f"Explain the 90-day groundwater forecast for district '{request.district}'. "
+                f"Current depth: {forecast_data['current_depth_mbgl']}m bgl. "
+                f"Predicted 90-day depth: {forecast_data['predicted_90d_depth_mbgl']}m bgl. "
+                f"Trend status: {forecast_data['trend_status']}. "
+                f"Rainfall factor: {request.rainfall_trend_pct}%, Extraction factor: {request.extraction_change_pct}%. "
+                f"Provide concise CGWB Hydrogeologist explanation and 2 specific policy mitigation actions."
+            )
+            explanation = await gemini_service.chat(xai_prompt)
+        except Exception:
+            explanation = (
+                f"Statistical regression models project {request.district}'s groundwater depth shifting from "
+                f"{forecast_data['current_depth_mbgl']}m bgl to {forecast_data['predicted_90d_depth_mbgl']}m bgl over the next 90 days. "
+                f"Status: {forecast_data['trend_status']}. Recommended action: Deploy artificial recharge check dams and promote micro-irrigation."
+            )
+            
+        forecast_data["ai_explanation"] = explanation
+        forecast_data["timestamp"] = datetime.utcnow().isoformat()
+        return forecast_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

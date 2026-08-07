@@ -42,3 +42,27 @@ class SummarizeDistrictRequest(BaseModel):
 class SummarizeDistrictResponse(BaseModel):
     response: str
     timestamp: str
+
+class ForecastRequest(BaseModel):
+    district: str
+    historical_months: Optional[int] = 12
+    rainfall_trend_pct: Optional[float] = 0.0
+    extraction_change_pct: Optional[float] = 0.0
+
+class ForecastPoint(BaseModel):
+    date: str
+    historical: Optional[float] = None
+    forecast: Optional[float] = None
+    lower_ci: Optional[float] = None
+    upper_ci: Optional[float] = None
+    recharge_factor: float
+
+class ForecastResponse(BaseModel):
+    district: str
+    current_depth_mbgl: float
+    predicted_90d_depth_mbgl: float
+    trend_status: str
+    time_series: List[ForecastPoint]
+    ai_explanation: Optional[str] = None
+    timestamp: str
+

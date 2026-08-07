@@ -11,8 +11,10 @@ import {
 } from 'lucide-react';
 import { animate } from 'animejs';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string; color?: string }>> = {
   LayoutDashboard, Map, BarChart3, TrendingUp,
@@ -36,11 +38,13 @@ const secondaryItems = [
 
 export function Sidebar() {
   const { state, toggleSidebar, openAiAssistant } = useApp();
+  const { currentUser, logout } = useAuth();
   const { sidebarCollapsed } = state;
   const location = useLocation();
   const sidebarRef = useRef<HTMLElement>(null);
   const [roadmapOpen, setRoadmapOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (!sidebarRef.current) return;
@@ -222,6 +226,8 @@ export function Sidebar() {
         background: '#FAFBFC',
       }}>
         <div
+          onClick={logout}
+          title="Click to Log Out"
           style={{
             display: 'flex', alignItems: 'center', gap: '10px',
             padding: '10px 12px', borderRadius: '10px', cursor: 'pointer',
@@ -234,22 +240,23 @@ export function Sidebar() {
           <div style={{
             width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
             background: 'linear-gradient(135deg, #60A5FA, #2563EB)',
+            color: '#FFFFFF', fontSize: '11px', fontWeight: 800,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 2px 8px rgba(37,99,235,0.25)',
           }}>
-            <User size={14} color="#FFFFFF" />
+            {currentUser?.avatar || 'OF'}
           </div>
           {!sidebarCollapsed && (
             <>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: '13px', fontWeight: 600, color: '#1E293B', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  Dr. Anand Verma
+                <p style={{ fontSize: '12.5px', fontWeight: 700, color: '#1E293B', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
+                  {currentUser?.name || 'Logged-in Officer'}
                 </p>
-                <p style={{ fontSize: '10.5px', color: '#94A3B8', fontWeight: 500, lineHeight: 1.2, marginTop: '2px' }}>
-                  Senior Hydrogeologist
+                <p style={{ fontSize: '10px', color: '#64748B', fontWeight: 500, lineHeight: 1.2, marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
+                  {currentUser?.roleTitle || 'Hydrogeologist'}
                 </p>
               </div>
-              <LogOut size={13} color="#CBD5E1" style={{ flexShrink: 0 }} />
+              <LogOut size={13} color="#94A3B8" style={{ flexShrink: 0 }} />
             </>
           )}
         </div>
