@@ -4,7 +4,7 @@ import { PageContainer } from '@/components/ui/PageContainer';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
-import { MOCK_REPORTS } from '@/constants/mockData';
+import { MOCK_REPORTS, MOCK_DISTRICTS } from '@/constants/mockData';
 import { generateCGWBReportPDF } from '@/services/pdfReportService';
 import type { Report } from '@/types';
 
@@ -28,23 +28,30 @@ export function Reports() {
   const [selected, setSelected] = useState<Report>(MOCK_REPORTS[0]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [selectedDistrictId, setSelectedDistrictId] = useState<string>(MOCK_DISTRICTS[0].id);
 
-  const handleGeneratePDF = (districtName: string = "Jaipur") => {
+  const selectedDistrictObj = MOCK_DISTRICTS.find(d => d.id === selectedDistrictId) || MOCK_DISTRICTS[0];
+
+  const handleGeneratePDF = (districtObj = selectedDistrictObj) => {
+    const depth = districtObj.groundwaterDepth;
+    const isCritical = districtObj.riskLevel === 'critical' || districtObj.riskLevel === 'high';
+    
     generateCGWBReportPDF({
-      district: districtName,
-      state: "Rajasthan",
-      water_level_mbgl: 18.4,
-      soe_pct: 142.5,
-      gsi_score: 42,
-      status: "Critical Moratorium",
-      ai_summary: "Comprehensive DWLR sensor telemetry indicates rapid groundwater table decline in Jaipur South block due to agricultural over-extraction and monsoon deficit.",
+      district: districtObj.name,
+      state: districtObj.state,
+      water_level_mbgl: depth,
+      soe_pct: Number(((districtObj.extractionRate / Math.max(1, districtObj.rechargeRate)) * 100).toFixed(1)),
+      gsi_score: districtObj.healthScore,
+      status: isCritical ? "Critical Moratorium Zone" : "Safe Sustainable Zone",
+      ai_summary: `Official CGWB telemetry audit for ${districtObj.name} (${districtObj.state}) indicates average groundwater table depth of ${depth}m BGL with active sensor array diagnostics.`,
       recommendations: [
-        "Enforce strict moratorium on commercial tube-well boring in critical blocks.",
-        "Construct 50 artificial recharge check dams along distributary stream channels.",
-        "Mandate micro-irrigation adoption (drip/sprinkler) for high-water crops."
+        `Mandate micro-irrigation and crop rotation protocols across ${districtObj.name} agricultural blocks.`,
+        `Deploy ${Math.round(districtObj.totalSensors * 1.5)} additional artificial recharge check dams along river tributaries.`,
+        `Enforce real-time telemetry extraction capping for commercial industrial consumers.`
       ]
     });
   };
+
 
   const filtered = MOCK_REPORTS.filter(r => {
     const matchSearch = r.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -59,15 +66,29 @@ export function Reports() {
       title="CGWB Survey & Audit Repository"
       subtitle="Access generated hydrological summaries, district-level audits, and official CGWB PDF reports"
       actions={
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <select
+            value={selectedDistrictId}
+            onChange={e => setSelectedDistrictId(e.target.value)}
+            style={{
+              background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '8px',
+              padding: '6px 12px', fontSize: '12.5px', fontWeight: 700, color: '#0F172A',
+              outline: 'none', cursor: 'pointer', fontFamily: 'inherit'
+            }}
+          >
+            {MOCK_DISTRICTS.map(d => (
+              <option key={d.id} value={d.id}>{d.name} ({d.state})</option>
+            ))}
+          </select>
           <Button variant="secondary" size="sm" icon={<Printer size={14} />} onClick={() => window.print()}>
             Print View
           </Button>
-          <Button variant="primary" size="sm" icon={<FileText size={14} />} onClick={() => handleGeneratePDF(selected.title.split(' ')[0] || "Jaipur")}>
-            Generate CGWB Report PDF
+          <Button variant="primary" size="sm" icon={<FileText size={14} />} onClick={() => handleGeneratePDF(selectedDistrictObj)}>
+            Export CGWB PDF Report
           </Button>
         </div>
       }
+
     >
       {/* 2-column: document list | detail panel */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '20px', alignItems: 'start' }}>
@@ -252,7 +273,8 @@ export function Reports() {
               variant="primary"
               icon={<Download size={15} />}
               fullWidth
-              onClick={() => handleGeneratePDF(selected.title.split(' ')[0] || "Jaipur")}
+              onClick={() => handleGeneratePDF(selectedDistrictObj)}
+
             >
               Export CGWB Report PDF
             </Button>

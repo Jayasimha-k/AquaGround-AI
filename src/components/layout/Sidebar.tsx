@@ -262,25 +262,27 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* ── Collapse Toggle ────────────────────────────────────────────── */}
+      {/* ── Collapse Toggle Button ────────────────────────────────────────── */}
       <button
         onClick={toggleSidebar}
         aria-label="Toggle Sidebar"
+        title={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
         style={{
-          position: 'absolute', right: -14, top: 72,
-          width: 28, height: 28, borderRadius: '50%',
-          background: '#FFFFFF', border: '1.5px solid #E2E8F0',
-          boxShadow: '0 2px 8px rgba(15,23,42,0.12)',
+          position: 'absolute', right: -13, top: 17,
+          width: 26, height: 26, borderRadius: '50%',
+          background: '#FFFFFF', border: '1.5px solid #CBD5E1',
+          boxShadow: '0 2px 8px rgba(15,23,42,0.15)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', zIndex: 50, transition: 'border-color 0.15s, box-shadow 0.15s',
+          cursor: 'pointer', zIndex: 100, transition: 'all 0.15s',
         }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#93C5FD'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(37,99,235,0.2)'; }}
-        onMouseLeave={e => { (e.currentTarget.style.borderColor = '#E2E8F0'); (e.currentTarget.style.boxShadow = '0 2px 8px rgba(15,23,42,0.12)'); }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#2563EB'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(37,99,235,0.3)'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(15,23,42,0.15)'; }}
       >
         {sidebarCollapsed
-          ? <ChevronRight size={12} color="#64748B" />
-          : <ChevronLeft size={12} color="#64748B" />}
+          ? <ChevronRight size={13} color="#2563EB" />
+          : <ChevronLeft size={13} color="#64748B" />}
       </button>
+
 
       {/* ── AI Console Modal ───────────────────────────────────────────── */}
       <Modal
