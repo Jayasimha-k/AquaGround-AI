@@ -206,17 +206,6 @@ def login_officer(req: LoginRequest, request: Request, db: Session = Depends(get
             db.commit()
         raise HTTPException(status_code=401, detail="Invalid email or password credentials.")
 
-    # Generate REAL 6-digit Login OTP
-    otp_str = generate_otp_code()
-    otp_entry = OTPCode(
-        email=user.email,
-        code=otp_str,
-        purpose="login",
-        expires_at=datetime.datetime.utcnow() + datetime.timedelta(minutes=15),
-        is_used=False
-    )
-    db.add(otp_entry)
-
     log_success = LoginHistory(
         user_id=user.id,
         ip_address=client_ip,
@@ -227,20 +216,9 @@ def login_officer(req: LoginRequest, request: Request, db: Session = Depends(get
     db.add(log_success)
     db.commit()
 
-    # Send REAL email
-    email_sent = send_otp_email(user.email, user.name, otp_str, "login")
-    has_smtp = bool(settings.smtp_user and settings.smtp_password)
-
-    msg = f"Real OTP login code dispatched to your email inbox ({user.email})." if has_smtp else f"Demo Mode: Your OTP login code is [{otp_str}]."
-
     return {
-        "status": "requires_otp",
-        "purpose": "login",
-        "message": msg,
-        "email_sent": email_sent,
-        "is_smtp_configured": has_smtp,
-        "otp_code": otp_str,
-        "otp_debug": otp_str,
+        "status": "success",
+        "message": "Login successful.",
         "user": {
             "id": f"usr-{user.id}",
             "name": user.name,

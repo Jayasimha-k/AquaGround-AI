@@ -68,8 +68,8 @@ export const Login: React.FC = () => {
     e.preventDefault();
     clearFeedback();
 
-    if (!email) {
-      setError('Please enter your official CGWB email address.');
+    if (!email || !password) {
+      setError('Please enter your official email address and password.');
       return;
     }
 
@@ -79,10 +79,11 @@ export const Login: React.FC = () => {
       if (res.requiresOtp) {
         setOtpTargetEmail(email);
         setOtpPurpose(res.purpose as any || 'login');
-        setOtpDebugHint(res.otp_debug || '849201');
         setCountdown(60);
         setSuccessMsg(res.message || 'OTP verification code sent to your official email.');
         setMode('otp_verify');
+      } else {
+        setSuccessMsg('Authentication successful! Accessing AquaGround AI Command Center...');
       }
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check credentials.');
@@ -103,7 +104,7 @@ export const Login: React.FC = () => {
 
     setLoading(true);
     try {
-      const res = await registerAccount({
+      await registerAccount({
         name: regName,
         email: regEmail,
         password: regPassword,
@@ -113,9 +114,8 @@ export const Login: React.FC = () => {
 
       setOtpTargetEmail(regEmail);
       setOtpPurpose('verification');
-      setOtpDebugHint(res.otp_debug || '849201');
       setCountdown(60);
-      setSuccessMsg('Account registered successfully! OTP email verification code sent to your email.');
+      setSuccessMsg('Account registered successfully! A 6-digit OTP verification code has been sent to your email inbox.');
       setMode('otp_verify');
     } catch (err: any) {
       setError(err.message || 'Account registration failed.');
@@ -549,31 +549,6 @@ export const Login: React.FC = () => {
               </p>
             </div>
 
-            {otpDebugHint && (
-              <div style={{
-                background: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: '10px',
-                padding: '10px 14px', textAlign: 'center'
-              }}>
-                <p style={{ fontSize: '12px', fontWeight: 700, color: '#92400E', margin: 0 }}>
-                  ⚡ Verification OTP Code: <span style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '2px', background: '#FDE68A', padding: '2px 8px', borderRadius: '4px', color: '#78350F' }}>{otpDebugHint}</span>
-                </p>
-                <p style={{ fontSize: '10.5px', color: '#B45309', margin: '4px 0 6px 0' }}>
-                  (Add Gmail SMTP credentials in <code>.env</code> to deliver directly to your actual Gmail inbox)
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setOtpCode(otpDebugHint)}
-                  style={{
-                    background: '#D97706', color: '#FFFFFF', border: 'none', padding: '5px 12px',
-                    borderRadius: '6px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer',
-                    boxShadow: '0 2px 6px rgba(217,119,6,0.3)'
-                  }}
-                >
-                  Auto-Fill {otpDebugHint}
-                </button>
-              </div>
-            )}
-
             <div>
               <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '6px', textAlign: 'center' }}>
                 One-Time Password (OTP)
@@ -583,7 +558,7 @@ export const Login: React.FC = () => {
                 maxLength={6}
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
-                placeholder={otpDebugHint || "849201"}
+                placeholder="000000"
                 style={{
                   width: '100%', background: '#F8FAFC', border: '2px solid #2563EB',
                   borderRadius: '10px', padding: '12px', fontSize: '22px', fontWeight: 800,
@@ -706,7 +681,7 @@ export const Login: React.FC = () => {
                 maxLength={6}
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
-                placeholder="849201"
+                placeholder="000000"
                 style={{
                   width: '100%', background: '#F8FAFC', border: '1px solid #CBD5E1',
                   borderRadius: '8px', padding: '10px', fontSize: '16px', fontWeight: 800,

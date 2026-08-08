@@ -203,37 +203,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginAccount = async (email: string, pass: string) => {
-    // Check if matching demo account
-    const matchedDemo = DEMO_ACCOUNTS.find(a => a.email.toLowerCase() === email.toLowerCase());
-    if (matchedDemo) {
-      setPendingUser(matchedDemo);
-    } else {
-      const rawName = email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').trim();
-      const formattedName = rawName.length > 0 
-        ? rawName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-        : 'Hydrogeologist Officer';
-      
-      const newOfficer: UserAccount = {
-        id: `usr-${Date.now()}`,
-        name: formattedName,
-        email: email,
+    const res = await authApi.login({ email, password: pass });
+    
+    if (res.status === 'success' && res.user) {
+      const userObj: UserAccount = {
+        id: res.user.id || `usr-${Date.now()}`,
+        name: res.user.name || email.split('@')[0].toUpperCase(),
+        email: res.user.email || email,
         role: 'officer',
-        roleTitle: 'Senior Hydrogeologist',
-        designation: 'Senior Hydrogeologist / Regional Scientist',
-        district: 'Command Region',
+        roleTitle: res.user.designation || 'Senior Hydrogeologist',
+        designation: res.user.designation || 'Senior Hydrogeologist',
+        district: res.user.district || 'Command Region',
         department: 'Central Ground Water Board (CGWB)',
-        avatar: formattedName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'CG',
+        avatar: (res.user.name || email.split('@')[0]).substring(0, 2).toUpperCase(),
         isVerified: true,
         registeredAt: new Date().toISOString(),
       };
-      setPendingUser(newOfficer);
+      setCurrentUser(userObj);
+      return { requiresOtp: false, message: 'Login successful.' };
     }
 
-    const res = await authApi.login({ email, password: pass });
+    // Fallback if requires_otp
     return {
       requiresOtp: res.status === 'requires_otp',
       purpose: res.purpose || 'login',
-      otp_debug: res.otp_code || res.otp_debug,
       message: res.message
     };
   };
