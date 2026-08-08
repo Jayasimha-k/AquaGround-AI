@@ -32,14 +32,14 @@ interface CriticalLocationData {
   districtId: string;
   name: string;
   state: string;
-  status: 'critical' | 'high' | 'moderate' | 'stable';
+  status: 'critical' | 'high' | 'moderate' | 'low' | 'stable';
   depthBgl: number;
   deficitMcm: number;
   activeSensors: number;
   suggestions: WaterResourceSuggestion[];
 }
 
-const CRITICAL_LOCATIONS_DATA: CriticalLocationData[] = [
+const HAND_CURATED_LOCATIONS: CriticalLocationData[] = [
   {
     districtId: 'd-101',
     name: 'Jhansi',
@@ -284,33 +284,89 @@ const CRITICAL_LOCATIONS_DATA: CriticalLocationData[] = [
   },
 ];
 
+// Combine all map points from MOCK_DISTRICTS to cover all risk levels (Critical, High, Moderate, Low, Stable)
+const ALL_LOCATIONS_DATA: CriticalLocationData[] = MOCK_DISTRICTS.map(d => {
+  const existing = HAND_CURATED_LOCATIONS.find(c => c.name.toLowerCase() === d.name.toLowerCase());
+  if (existing) {
+    return {
+      ...existing,
+      districtId: d.id,
+      status: d.riskLevel as any,
+    };
+  }
+
+  const deficit = +(d.extractionRate - d.rechargeRate).toFixed(1);
+  const deficitMcm = deficit > 0 ? deficit : 0.6;
+
+  return {
+    districtId: d.id,
+    name: d.name,
+    state: d.state,
+    status: d.riskLevel as any,
+    depthBgl: d.groundwaterDepth,
+    deficitMcm,
+    activeSensors: d.activeSensors,
+    suggestions: [
+      {
+        id: `res-${d.id}-1`,
+        name: `${d.name} Regional Reservoir & Basin System`,
+        type: 'Surface Reservoir',
+        distanceKm: Math.floor(Math.random() * 25 + 18),
+        capacityMcm: Math.floor(Math.random() * 90 + 70),
+        feasibilityPct: Math.floor(Math.random() * 12 + 84),
+        pipelineType: 'Pressurized Water Distribution Main',
+        riverBasin: `${d.state} Catchment`,
+        actionPlan: `Dispatch surface water allocation of ${Math.floor(deficitMcm * 10 || 15)} MCM/yr to offset local groundwater drawdown.`,
+      },
+      {
+        id: `res-${d.id}-2`,
+        name: `${d.state} Inter-District Feeder Canal`,
+        type: 'Inter-Basin Canal',
+        distanceKm: Math.floor(Math.random() * 35 + 25),
+        capacityMcm: Math.floor(Math.random() * 110 + 50),
+        feasibilityPct: Math.floor(Math.random() * 10 + 82),
+        pipelineType: 'Gravity Flow Canal Channel',
+        riverBasin: `${d.state} Hydro Basin`,
+        actionPlan: `Construct secondary diversion channels to route seasonal surplus flow into ${d.name} artificial recharge structures.`,
+      },
+    ],
+  };
+});
+
 export function WaterSources() {
   const { dispatchDirectiveAlert } = useAuth();
   const { t } = useLanguage();
 
-  const [selectedLocation, setSelectedLocation] = useState<CriticalLocationData>(CRITICAL_LOCATIONS_DATA[0]);
-  const [filterStatus, setFilterStatus] = useState<'all' | 'critical' | 'high'>('all');
+  const [selectedLocation, setSelectedLocation] = useState<CriticalLocationData>(ALL_LOCATIONS_DATA[0]);
+  const [filterStatus, setFilterStatus] = useState<'all' | 'critical' | 'high' | 'moderate' | 'low'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiRecommendation, setAiRecommendation] = useState<string | null>(null);
 
   const filteredLocations = useMemo(() => {
-    return CRITICAL_LOCATIONS_DATA.filter(loc => {
+    return ALL_LOCATIONS_DATA.filter(loc => {
       const matchSearch = loc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           loc.state.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchStatus = filterStatus === 'all' || loc.status === filterStatus;
+      const matchStatus = 
+        filterStatus === 'all' ? true :
+        filterStatus === 'low' ? (loc.status === 'low' || loc.status === 'stable') :
+        loc.status === filterStatus;
       return matchSearch && matchStatus;
     });
   }, [searchQuery, filterStatus]);
 
-  const totalCriticalCount = CRITICAL_LOCATIONS_DATA.filter(l => l.status === 'critical').length;
-  const totalSuggestedSources = CRITICAL_LOCATIONS_DATA.reduce((acc, l) => acc + l.suggestions.length, 0);
-  const totalCapacityMcm = CRITICAL_LOCATIONS_DATA.reduce((acc, l) => acc + l.suggestions.reduce((s, item) => s + item.capacityMcm, 0), 0);
+  const totalCriticalCount = ALL_LOCATIONS_DATA.filter(l => l.status === 'critical').length;
+  const totalHighCount = ALL_LOCATIONS_DATA.filter(l => l.status === 'high').length;
+  const totalModerateCount = ALL_LOCATIONS_DATA.filter(l => l.status === 'moderate').length;
+  const totalLowCount = ALL_LOCATIONS_DATA.filter(l => l.status === 'low' || l.status === 'stable').length;
+
+  const totalSuggestedSources = ALL_LOCATIONS_DATA.reduce((acc, l) => acc + l.suggestions.length, 0);
+  const totalCapacityMcm = ALL_LOCATIONS_DATA.reduce((acc, l) => acc + l.suggestions.reduce((s, item) => s + item.capacityMcm, 0), 0);
 
   const handleDispatchDirective = (suggestion: WaterResourceSuggestion) => {
     dispatchDirectiveAlert(
       `Water Transfer Directive Dispatched (${selectedLocation.name})`,
-      `Approved water resource allocation from ${suggestion.name} (${suggestion.distanceKm}km distance, ${suggestion.capacityMcm} MCM/yr capacity) to alleviate critical groundwater depletion in ${selectedLocation.name}, ${selectedLocation.state}.`,
+      `Approved water resource allocation from ${suggestion.name} (${suggestion.distanceKm}km distance, ${suggestion.capacityMcm} MCM/yr capacity) to alleviate groundwater depletion in ${selectedLocation.name}, ${selectedLocation.state}.`,
       selectedLocation.name
     );
   };
@@ -320,7 +376,7 @@ export function WaterSources() {
     setAiRecommendation(null);
 
     try {
-      const prompt = `Give concise hydrogeological water resource allocation advice for ${selectedLocation.name} (${selectedLocation.state}), which currently has a critical water table depth of ${selectedLocation.depthBgl}m BGL and an annual deficit of ${selectedLocation.deficitMcm} MCM/yr. Recommend the best surface reservoir or inter-basin pipeline options.`;
+      const prompt = `Give concise hydrogeological water resource allocation advice for ${selectedLocation.name} (${selectedLocation.state}), which currently has a groundwater table depth of ${selectedLocation.depthBgl}m BGL (Status: ${selectedLocation.status.toUpperCase()}) and an annual deficit of ${selectedLocation.deficitMcm} MCM/yr. Recommend the best surface reservoir or inter-basin pipeline options.`;
       const res = await aiServiceClient.chat(prompt, []);
       setAiRecommendation(res.response);
     } catch (err) {
@@ -331,10 +387,21 @@ export function WaterSources() {
     }
   };
 
+  const getBorderLeftColor = (status: string) => {
+    switch (status) {
+      case 'critical': return '#EF4444';
+      case 'high': return '#F97316';
+      case 'moderate': return '#3B82F6';
+      case 'low':
+      case 'stable': return '#10B981';
+      default: return '#3B82F6';
+    }
+  };
+
   return (
     <PageContainer
       title={t('nav_water_sources', 'Water Resources & Reservoir Advisory')}
-      subtitle="Identify critical water depletion zones across India and match them with nearby surface reservoirs, rivers, and inter-basin transfer pipelines"
+      subtitle="Identify water depletion zones across India and match them with nearby surface reservoirs, rivers, and inter-basin transfer pipelines"
       actions={
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <Button
@@ -355,27 +422,27 @@ export function WaterSources() {
       {/* ── TOP METRIC HIGHLIGHT CARDS ───────────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
         <div style={{ background: '#FFFFFF', border: '1px solid #E8EDF3', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 3px rgba(15,23,42,0.05)' }}>
-          <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Critical Water Deficit Zones</p>
+          <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Critical Deficit Zones</p>
           <p style={{ fontSize: '24px', fontWeight: 800, color: '#EF4444', marginTop: '6px', margin: 0 }}>
             {totalCriticalCount} <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>locations</span>
           </p>
         </div>
         <div style={{ background: '#FFFFFF', border: '1px solid #E8EDF3', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 3px rgba(15,23,42,0.05)' }}>
-          <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Identified Water Reservoirs</p>
+          <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>High Risk Zones</p>
+          <p style={{ fontSize: '24px', fontWeight: 800, color: '#F97316', marginTop: '6px', margin: 0 }}>
+            {totalHighCount} <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>locations</span>
+          </p>
+        </div>
+        <div style={{ background: '#FFFFFF', border: '1px solid #E8EDF3', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 3px rgba(15,23,42,0.05)' }}>
+          <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Moderate & Low Risk Zones</p>
+          <p style={{ fontSize: '24px', fontWeight: 800, color: '#10B981', marginTop: '6px', margin: 0 }}>
+            {totalModerateCount + totalLowCount} <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>locations</span>
+          </p>
+        </div>
+        <div style={{ background: '#FFFFFF', border: '1px solid #E8EDF3', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 3px rgba(15,23,42,0.05)' }}>
+          <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Total Identified Water Sources</p>
           <p style={{ fontSize: '24px', fontWeight: 800, color: '#2563EB', marginTop: '6px', margin: 0 }}>
             {totalSuggestedSources} <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>sources</span>
-          </p>
-        </div>
-        <div style={{ background: '#FFFFFF', border: '1px solid #E8EDF3', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 3px rgba(15,23,42,0.05)' }}>
-          <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Total Transfer Allocation Yield</p>
-          <p style={{ fontSize: '24px', fontWeight: 800, color: '#10B981', marginTop: '6px', margin: 0 }}>
-            {totalCapacityMcm} <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>MCM/yr</span>
-          </p>
-        </div>
-        <div style={{ background: '#FFFFFF', border: '1px solid #E8EDF3', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 3px rgba(15,23,42,0.05)' }}>
-          <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Average Transfer Distance</p>
-          <p style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', marginTop: '6px', margin: 0 }}>
-            44.8 <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>km</span>
           </p>
         </div>
       </div>
@@ -406,20 +473,22 @@ export function WaterSources() {
               onChange={e => setFilterStatus(e.target.value as any)}
               style={{
                 background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px',
-                padding: '8px 10px', fontSize: '12px', fontWeight: 600, color: '#334155',
+                padding: '8px 10px', fontSize: '12px', fontWeight: 700, color: '#334155',
                 outline: 'none', cursor: 'pointer', fontFamily: 'inherit'
               }}
             >
-              <option value="all">All</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
+              <option value="all">All ({ALL_LOCATIONS_DATA.length})</option>
+              <option value="critical">Critical ({totalCriticalCount})</option>
+              <option value="high">High ({totalHighCount})</option>
+              <option value="moderate">Moderate ({totalModerateCount})</option>
+              <option value="low">Low ({totalLowCount})</option>
             </select>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '580px', overflowY: 'auto' }}>
             {filteredLocations.map(loc => {
               const isSelected = selectedLocation.districtId === loc.districtId;
-              const isCritical = loc.status === 'critical';
+              const borderLeftColor = getBorderLeftColor(loc.status);
               return (
                 <div
                   key={loc.districtId}
@@ -429,7 +498,7 @@ export function WaterSources() {
                     border: `1px solid ${isSelected ? '#3B82F6' : '#E8EDF3'}`,
                     borderRadius: '10px', cursor: 'pointer', transition: 'all 0.15s',
                     boxShadow: isSelected ? '0 4px 12px rgba(37,99,235,0.12)' : '0 1px 3px rgba(15,23,42,0.04)',
-                    borderLeft: `4px solid ${isCritical ? '#EF4444' : '#F97316'}`,
+                    borderLeft: `4px solid ${borderLeftColor}`,
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
@@ -440,7 +509,7 @@ export function WaterSources() {
                     <MapPin size={12} color="#94A3B8" /> {loc.state}
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#475569', background: '#F8FAFC', padding: '6px 8px', borderRadius: '6px' }}>
-                    <span>Depth: <strong style={{ color: '#EF4444' }}>{loc.depthBgl}m</strong></span>
+                    <span>Depth: <strong style={{ color: borderLeftColor }}>{loc.depthBgl}m</strong></span>
                     <span>Deficit: <strong style={{ color: '#991B1B' }}>-{loc.deficitMcm} MCM</strong></span>
                   </div>
                 </div>
