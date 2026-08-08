@@ -106,7 +106,7 @@ export const ANIMATION = {
 } as const;
 
 // ── API Endpoints (stubbed for future integration) ────────────────────────────
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? `http://${window.location.hostname}:8000/api/v1` : 'http://localhost:8000/api/v1');
 
 export const API_ENDPOINTS = {
   DISTRICTS: '/districts',
