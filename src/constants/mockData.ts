@@ -1143,6 +1143,42 @@ export const YEARLY_WATER_LEVEL_DATA = {
   recharge: [4.8, 4.2, 3.9, 3.6, 3.2, 2.8, 2.4, 2.1],
 };
 
+export interface DistrictTelemetryData {
+  labels: string[];
+  depth: number[];
+  extraction: number[];
+  recharge: number[];
+  rainfall: number[];
+}
+
+export function getDistrictTelemetryData(districtId?: string): DistrictTelemetryData {
+  if (!districtId || districtId === 'all') {
+    return MONTHLY_WATER_LEVEL_DATA;
+  }
+
+  const district = MOCK_DISTRICTS.find(d => d.id === districtId);
+  if (!district) return MONTHLY_WATER_LEVEL_DATA;
+
+  // Monthly seasonal curve multipliers (Jan -> Dec)
+  const depthMultipliers = [0.95, 1.00, 1.06, 1.14, 1.22, 1.25, 1.05, 0.85, 0.74, 0.79, 0.88, 0.93];
+  const extractionMultipliers = [0.95, 0.90, 1.05, 1.20, 1.30, 1.25, 0.85, 0.67, 0.72, 0.82, 0.92, 0.98];
+  const rechargeMultipliers = [0.60, 0.50, 0.40, 0.25, 0.20, 0.80, 1.80, 2.30, 2.00, 1.20, 0.80, 0.60];
+  const rainfallSeasonal = [0.03, 0.02, 0.01, 0.01, 0.01, 0.12, 0.35, 0.30, 0.12, 0.03, 0.01, 0.01];
+
+  const baseDepth = district.groundwaterDepth;
+  const baseExt = district.extractionRate;
+  const baseRec = district.rechargeRate;
+  const totalRain = district.rainfall;
+
+  return {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    depth: depthMultipliers.map(m => +(baseDepth * m).toFixed(1)),
+    extraction: extractionMultipliers.map(m => +(baseExt * m).toFixed(1)),
+    recharge: rechargeMultipliers.map(m => +(baseRec * m).toFixed(1)),
+    rainfall: rainfallSeasonal.map(m => +(totalRain * m).toFixed(0)),
+  };
+}
+
 // ── GIS Map Overlays Mock Data ────────────────────────────────────────────────
 export const MOCK_VILLAGES = MOCK_DISTRICTS.flatMap(d => [
   {
