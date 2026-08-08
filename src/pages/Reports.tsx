@@ -42,25 +42,32 @@ export function Reports() {
   const handleGeneratePDF = (districtObj = selectedDistrictObj) => {
     const depth = districtObj.groundwaterDepth;
     const isCritical = districtObj.riskLevel === 'critical' || districtObj.riskLevel === 'high';
+    const recharge = districtObj.rechargeRate;
+    const extraction = districtObj.extractionRate;
+    const netBalance = Number((recharge - extraction).toFixed(1));
+    const soePct = Number(((extraction / Math.max(1, recharge)) * 100).toFixed(1));
     
     generateCGWBReportPDF({
       district: districtObj.name,
       state: districtObj.state,
       water_level_mbgl: depth,
-      soe_pct: Number(((districtObj.extractionRate / Math.max(1, districtObj.rechargeRate)) * 100).toFixed(1)),
+      soe_pct: soePct,
       gsi_score: districtObj.healthScore,
+      recharge_mcm: recharge,
+      extraction_mcm: extraction,
+      net_balance_mcm: netBalance,
       status: isCritical ? "Critical Moratorium Zone" : "Safe Sustainable Zone",
-      ai_summary: `Official CGWB telemetry audit for ${districtObj.name} (${districtObj.state}) indicates average groundwater table depth of ${depth}m BGL with active sensor array diagnostics.`,
+      ai_summary: `Official CGWB annual hydrological audit for ${districtObj.name} (${districtObj.state}) indicates natural recharge of ${recharge} MCM/yr against extraction of ${extraction} MCM/yr (Net Balance: ${netBalance} MCM/yr, Stage of Extraction: ${soePct}%).`,
       recommendations: [
         `Mandate micro-irrigation and crop rotation protocols across ${districtObj.name} agricultural blocks.`,
-        `Deploy ${Math.round(districtObj.totalSensors * 1.5)} additional artificial recharge check dams along river tributaries.`,
+        `Deploy ${Math.round(districtObj.totalSensors * 1.5)} additional artificial recharge check dams along river tributaries to offset ${Math.abs(netBalance)} MCM annual deficit.`,
         `Enforce real-time telemetry extraction capping for commercial industrial consumers.`
       ]
     });
 
     dispatchDirectiveAlert(
-      `CGWB Official Survey Report Published (${districtObj.name})`,
-      `Official Hydrological Survey & Telemetry Audit Report generated for ${districtObj.name}, ${districtObj.state}. Groundwater table recorded at ${depth}m BGL.`,
+      `CGWB Official Annual Survey Report Published (${districtObj.name})`,
+      `Official Hydrological Survey & Annual Telemetry Audit generated for ${districtObj.name}, ${districtObj.state}. Recharge: ${recharge} MCM, Extraction: ${extraction} MCM.`,
       districtObj.name
     );
   };
@@ -294,6 +301,65 @@ export function Reports() {
                 </p>
               </div>
             ))}
+          </div>
+
+          {/* ── ANNUAL GROUNDWATER EXTRACTION & RECHARGE CARD ────────── */}
+          <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 3px rgba(15,23,42,0.05)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <TrendingDown size={16} color="#0284C7" />
+                Annual Area Assessment (Extraction vs Recharge)
+              </span>
+              <span style={{
+                fontSize: '10.5px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px',
+                background: selectedDistrictObj.extractionRate > selectedDistrictObj.rechargeRate ? '#FEF2F2' : '#ECFDF5',
+                color: selectedDistrictObj.extractionRate > selectedDistrictObj.rechargeRate ? '#EF4444' : '#10B981',
+                border: `1px solid ${selectedDistrictObj.extractionRate > selectedDistrictObj.rechargeRate ? '#FECACA' : '#A7F3D0'}`
+              }}>
+                SOE: {((selectedDistrictObj.extractionRate / Math.max(1, selectedDistrictObj.rechargeRate)) * 100).toFixed(1)}%
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+              <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: '8px', padding: '10px 12px' }}>
+                <span style={{ fontSize: '10px', fontWeight: 700, color: '#047857', textTransform: 'uppercase' }}>Annual Recharge</span>
+                <p style={{ fontSize: '15px', fontWeight: 800, color: '#065F46', margin: '3px 0 0 0' }}>
+                  {selectedDistrictObj.rechargeRate} <span style={{ fontSize: '11px', fontWeight: 600 }}>MCM</span>
+                </p>
+              </div>
+              <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', padding: '10px 12px' }}>
+                <span style={{ fontSize: '10px', fontWeight: 700, color: '#B91C1C', textTransform: 'uppercase' }}>Annual Extraction</span>
+                <p style={{ fontSize: '15px', fontWeight: 800, color: '#991B1B', margin: '3px 0 0 0' }}>
+                  {selectedDistrictObj.extractionRate} <span style={{ fontSize: '11px', fontWeight: 600 }}>MCM</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Visual Extraction vs Recharge comparison bar */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                <span>Recharge (Green) vs Extraction (Red)</span>
+                <span style={{ color: selectedDistrictObj.rechargeRate - selectedDistrictObj.extractionRate < 0 ? '#EF4444' : '#10B981' }}>
+                  Net: {(selectedDistrictObj.rechargeRate - selectedDistrictObj.extractionRate).toFixed(1)} MCM
+                </span>
+              </div>
+              <div style={{ display: 'flex', height: '10px', borderRadius: '99px', overflow: 'hidden', background: '#E2E8F0' }}>
+                <div
+                  title={`Recharge: ${selectedDistrictObj.rechargeRate} MCM`}
+                  style={{
+                    width: `${Math.min(100, (selectedDistrictObj.rechargeRate / (selectedDistrictObj.rechargeRate + selectedDistrictObj.extractionRate)) * 100)}%`,
+                    background: '#10B981',
+                  }}
+                />
+                <div
+                  title={`Extraction: ${selectedDistrictObj.extractionRate} MCM`}
+                  style={{
+                    width: `${Math.min(100, (selectedDistrictObj.extractionRate / (selectedDistrictObj.rechargeRate + selectedDistrictObj.extractionRate)) * 100)}%`,
+                    background: '#EF4444',
+                  }}
+                />
+              </div>
+            </div>
           </div>
 
           {/* ── VISUAL CHARTS & BAR GRAPHS ─────────────────────────────── */}
