@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes.ai import router as ai_router
 from routes.telemetry import router as telemetry_router
 from routes.auth import router as auth_router
+from routes.reservoir import router as reservoir_router
+from routes.river import router as river_router
 from config.settings import settings
 from config.database import engine, Base
 
@@ -29,6 +31,8 @@ app.add_middleware(
 app.include_router(ai_router)
 app.include_router(telemetry_router)
 app.include_router(auth_router)
+app.include_router(reservoir_router)
+app.include_router(river_router)
 
 
 @app.get("/")

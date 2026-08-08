@@ -2,13 +2,15 @@
 // NationalMap — Full-screen Leaflet GIS map centerpiece
 // =============================================================================
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Polygon, Polyline, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MAP_CONFIG, RISK_COLORS } from '@/constants';
 import { MOCK_DISTRICTS, MOCK_VILLAGES, MOCK_RIVERS, MOCK_CANALS, MOCK_RESERVOIRS } from '@/constants/mockData';
 import type { District } from '@/types';
 import { useApp } from '@/contexts/AppContext';
+import { ReservoirLayer } from '@/components/map/ReservoirLayer';
+
 
 // ── Map Controller for Camera Zoom/Fly ─────────────────────────────────────────
 interface MapControllerProps {
@@ -270,22 +272,50 @@ export function NationalMap({
           );
         })}
 
-        {/* ── 6. Rivers (Blue paths) ──────────────────────────────────── */}
-        {activeLayers.includes('river') && MOCK_RIVERS.map((r, idx) => (
-          <Polyline
-            key={`river-${idx}`}
-            positions={r.path}
-            pathOptions={{
-              color: '#3B82F6',
-              weight: 2,
-              opacity: 0.7,
-            }}
-          >
-            <Tooltip sticky>
-              <span className="text-xs font-semibold text-blue-700">{r.name} Flow</span>
-            </Tooltip>
-          </Polyline>
-        ))}
+        {/* ── 6. Rivers (Blue paths with telemetry tooltips) ──────────── */}
+        {activeLayers.includes('river') && MOCK_RIVERS.map((r, idx) => {
+          const isHigh = r.flowStatus === 'High Flow';
+          const isDeficit = r.flowStatus === 'Deficit Flow';
+          const color = isHigh ? '#0284C7' : isDeficit ? '#F59E0B' : '#2563EB';
+
+          return (
+            <Polyline
+              key={`river-${r.id || idx}`}
+              positions={r.path}
+              pathOptions={{
+                color,
+                weight: 3.5,
+                opacity: 0.85,
+              }}
+            >
+              <Tooltip sticky opacity={1}>
+                <div style={{ minWidth: 170, fontFamily: 'inherit' }}>
+                  <div style={{ fontWeight: 800, fontSize: 13, color: '#0F172A', marginBottom: 2 }}>
+                    🌊 {r.name}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#64748B', marginBottom: 6 }}>
+                    {r.riverBasin} · {r.lengthKm} km
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px 10px', fontSize: 11 }}>
+                    <span style={{ color: '#64748B' }}>Live Flow:</span>
+                    <span style={{ fontWeight: 700, color: '#0F172A' }}>{r.currentDischargeCumecs.toLocaleString()} m³/s</span>
+                    <span style={{ color: '#64748B' }}>Gauge Level:</span>
+                    <span style={{ fontWeight: 700, color: r.waterLevelMeters >= r.dangerLevelMeters ? '#EF4444' : '#0F172A' }}>
+                      {r.waterLevelMeters}m / {r.dangerLevelMeters}m
+                    </span>
+                    <span style={{ color: '#64748B' }}>WQI Index:</span>
+                    <span style={{ fontWeight: 700, color: r.wqi >= 75 ? '#10B981' : '#F59E0B' }}>
+                      {r.wqi} / 100
+                    </span>
+                  </div>
+                  <div style={{ marginTop: 6, display: 'inline-block', fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: isHigh ? '#E0F2FE' : isDeficit ? '#FEF3C7' : '#EFF6FF', color }}>
+                    Flow Status: {r.flowStatus}
+                  </div>
+                </div>
+              </Tooltip>
+            </Polyline>
+          );
+        })}
 
         {/* ── 7. Canals (Cyan dashed paths) ────────────────────────────── */}
         {activeLayers.includes('canal') && MOCK_CANALS.map((c, idx) => (
@@ -322,6 +352,9 @@ export function NationalMap({
             </Tooltip>
           </Polygon>
         ))}
+
+        {/* ── 9. Live Reservoir Levels (CWC/NWIC) ─────────────────────── */}
+        <ReservoirLayer visible={activeLayers.includes('reservoir')} />
 
         {/* Dynamic Zoom Fly Controller */}
         <MapController 

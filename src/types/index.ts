@@ -22,7 +22,8 @@ export type LayerId =
   | 'satellite'
   | 'terrain'
   | 'rainfall'
-  | 'sensor';
+  | 'sensor'
+  | 'reservoir';
 
 // ── Geographic ───────────────────────────────────────────────────────────────
 export interface Coordinates {

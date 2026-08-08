@@ -459,7 +459,7 @@ export function Analytics() {
                   padding: '24px',
                   display: 'flex',
                   flexDirection: 'column',
-                  justify: 'space-between',
+                  justifyContent: 'space-between',
                 }}
               >
                 <div>
@@ -492,7 +492,7 @@ export function Analytics() {
                     paddingTop: '16px',
                     borderTop: '1px solid #E2E8F0',
                     display: 'flex',
-                    justify: 'space-between',
+                    justifyContent: 'space-between',
                     alignItems: 'center',
                     fontSize: '12px',
                     color: '#64748B',
@@ -528,7 +528,7 @@ export function Analytics() {
                   padding: '24px',
                   display: 'flex',
                   flexDirection: 'column',
-                  justify: 'space-between',
+                  justifyContent: 'space-between',
                 }}
               >
                 <div>
@@ -558,7 +558,7 @@ export function Analytics() {
                     paddingTop: '16px',
                     borderTop: '1px solid #E2E8F0',
                     display: 'flex',
-                    justify: 'space-between',
+                    justifyContent: 'space-between',
                     alignItems: 'center',
                     fontSize: '12px',
                     color: '#64748B',
@@ -590,7 +590,7 @@ export function Analytics() {
                   padding: '24px',
                   display: 'flex',
                   flexDirection: 'column',
-                  justify: 'space-between',
+                  justifyContent: 'space-between',
                 }}
               >
                 <div>
@@ -619,7 +619,7 @@ export function Analytics() {
                     paddingTop: '16px',
                     borderTop: '1px solid #E2E8F0',
                     display: 'flex',
-                    justify: 'space-between',
+                    justifyContent: 'space-between',
                     alignItems: 'center',
                     fontSize: '12px',
                     color: '#64748B',
@@ -656,7 +656,7 @@ export function Analytics() {
                   padding: '24px',
                   display: 'flex',
                   flexDirection: 'column',
-                  justify: 'space-between',
+                  justifyContent: 'space-between',
                 }}
               >
                 <div>
@@ -690,7 +690,7 @@ export function Analytics() {
                     paddingTop: '16px',
                     borderTop: '1px solid #E2E8F0',
                     display: 'flex',
-                    justify: 'space-between',
+                    justifyContent: 'space-between',
                     alignItems: 'center',
                     fontSize: '12px',
                     color: '#64748B',

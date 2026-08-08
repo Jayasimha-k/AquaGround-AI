@@ -57,6 +57,7 @@ export const MAP_LAYERS: MapLayer[] = [
   { id: 'heatmap', label: 'Heatmap', icon: 'Layers', color: '#ef4444', active: false, description: 'Groundwater stress heatmap', group: 'data' },
   { id: 'risk', label: 'Risk Zones', icon: 'AlertTriangle', color: '#f59e0b', active: false, description: 'Risk level overlay', group: 'data' },
   { id: 'rainfall', label: 'Rainfall', icon: 'CloudRain', color: '#38bdf8', active: false, description: 'Rainfall distribution', group: 'data' },
+  { id: 'reservoir', label: 'Live Reservoirs', icon: 'Droplets', color: '#0ea5e9', active: false, description: 'Live CWC reservoir storage levels', group: 'infrastructure' },
   { id: 'river', label: 'Rivers', icon: 'Waves', color: '#0ea5e9', active: false, description: 'River network', group: 'infrastructure' },
   { id: 'canal', label: 'Canals', icon: 'GitBranch', color: '#06b6d4', active: false, description: 'Canal network', group: 'infrastructure' },
   { id: 'aquifer', label: 'Aquifers', icon: 'Droplets', color: '#818cf8', active: false, description: 'Aquifer zones', group: 'data' },
@@ -119,4 +120,10 @@ export const API_ENDPOINTS = {
   RECOMMENDATIONS: '/recommendations',
   REPORTS: '/reports',
   USERS: '/users',
+  RESERVOIRS: '/reservoirs',
+  RIVERS: '/rivers',
 } as const;
+
+// ── Reservoir & River APIs (CWC live telemetry endpoints proxied via backend) ─
+export const RESERVOIR_API_URL = `${API_BASE_URL}/reservoirs`;
+export const RIVER_API_URL = `${API_BASE_URL}/rivers`;
