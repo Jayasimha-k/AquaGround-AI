@@ -158,12 +158,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const verifyOTP = async (email: string, code: string, purpose: 'verification' | 'login' | 'reset'): Promise<boolean> => {
     const res = await authApi.verifyOTP({ email, code, purpose });
     if (res.status === 'success') {
-      if (purpose === 'verification' && pendingUser) {
-        const verifiedUser = { ...pendingUser, isVerified: true };
-        setCurrentUser(verifiedUser);
-        setPendingUser(null);
-      } else if (purpose === 'login' && pendingUser) {
-        setCurrentUser(pendingUser);
+      let loggedUser: UserAccount | null = pendingUser;
+
+      if (!loggedUser && res.user) {
+        loggedUser = {
+          id: res.user.id || `usr-${Date.now()}`,
+          name: res.user.name || email.split('@')[0].toUpperCase(),
+          email: res.user.email || email,
+          role: 'officer',
+          roleTitle: res.user.designation || 'Senior Hydrogeologist',
+          designation: res.user.designation || 'Senior Hydrogeologist',
+          district: res.user.district || 'National Command',
+          department: 'Central Ground Water Board (CGWB)',
+          avatar: (res.user.name || email.split('@')[0]).substring(0, 2).toUpperCase(),
+          isVerified: true,
+          registeredAt: new Date().toISOString(),
+        };
+      }
+
+      if (!loggedUser) {
+        const namePart = email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').toUpperCase();
+        loggedUser = {
+          id: `usr-${Date.now()}`,
+          name: namePart || 'Officer',
+          email: email,
+          role: 'officer',
+          roleTitle: 'Senior Hydrogeologist',
+          designation: 'Senior Hydrogeologist',
+          district: 'National Command',
+          department: 'Central Ground Water Board (CGWB)',
+          avatar: (namePart || 'CG').substring(0, 2),
+          isVerified: true,
+          registeredAt: new Date().toISOString(),
+        };
+      }
+
+      if (purpose === 'verification' || purpose === 'login') {
+        setCurrentUser({ ...loggedUser, isVerified: true });
         setPendingUser(null);
       }
       return true;
