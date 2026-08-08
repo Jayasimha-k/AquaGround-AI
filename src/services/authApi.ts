@@ -36,8 +36,25 @@ export interface AuditLogEntry {
 
 const BACKEND_AUTH_URL = API_BASE_URL.replace('/api/v1', '') + '/api/v1/auth';
 
-function generateRandom6DigitOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+async function handleResponse(res: Response, defaultError: string) {
+  if (res.ok) {
+    return await res.json();
+  }
+  let errDetail = defaultError;
+  try {
+    const err = await res.json();
+    errDetail = err.detail || err.message || defaultError;
+  } catch {
+    // Response was not JSON
+  }
+  throw new Error(errDetail);
+}
+
+function handleFetchError(e: any): never {
+  if (e.message && e.message.includes('Failed to fetch')) {
+    throw new Error(`Cannot connect to Backend Service at ${BACKEND_AUTH_URL}. Please ensure 'start_backend.bat' is running on port 8000.`);
+  }
+  throw e;
 }
 
 export const authApi = {
@@ -48,31 +65,9 @@ export const authApi = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (res.ok) {
-        const body = await res.json();
-        if (body.otp_code || body.otp_debug) {
-          sessionStorage.setItem(`cgwb_otp_${data.email.toLowerCase()}_verification`, body.otp_code || body.otp_debug);
-        }
-        return body;
-      }
-      const err = await res.json();
-      throw new Error(err.detail || 'Registration failed.');
+      return await handleResponse(res, 'Registration failed.');
     } catch (e: any) {
-      if (e.message && e.message !== 'Failed to fetch') {
-        throw e;
-      }
-      // Dynamic real OTP generation for fallback
-      const realOtp = generateRandom6DigitOTP();
-      sessionStorage.setItem(`cgwb_otp_${data.email.toLowerCase()}_verification`, realOtp);
-
-      return {
-        status: 'success',
-        message: `OTP verification code generated for ${data.email}.`,
-        email: data.email,
-        otp_code: realOtp,
-        otp_debug: realOtp,
-        is_smtp_configured: false,
-      };
+      handleFetchError(e);
     }
   },
 
@@ -83,37 +78,9 @@ export const authApi = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (res.ok) {
-        return await res.json();
-      }
-      const err = await res.json();
-      throw new Error(err.detail || 'OTP verification failed.');
+      return await handleResponse(res, 'OTP verification failed.');
     } catch (e: any) {
-      if (e.message && e.message !== 'Failed to fetch') {
-        throw e;
-      }
-      
-      const storedOtp = sessionStorage.getItem(`cgwb_otp_${data.email.toLowerCase()}_${data.purpose}`);
-      if (storedOtp && data.code.trim() !== storedOtp && data.code.trim() !== '849201') {
-        throw new Error('Invalid OTP code. Please enter the exact 6-digit code displayed on screen or sent to your email.');
-      }
-
-      if (!data.code || data.code.length !== 6) {
-        throw new Error('Please enter a valid 6-digit numeric OTP code.');
-      }
-
-      return {
-        status: 'success',
-        message: 'OTP verification successful.',
-        user: {
-          id: `usr-${Date.now()}`,
-          name: data.email.split('@')[0].toUpperCase(),
-          email: data.email,
-          designation: 'Senior Hydrogeologist Officer',
-          district: 'National Command',
-          is_verified: true,
-        },
-      };
+      handleFetchError(e);
     }
   },
 
@@ -124,39 +91,9 @@ export const authApi = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (res.ok) {
-        const body = await res.json();
-        if (body.otp_code || body.otp_debug) {
-          sessionStorage.setItem(`cgwb_otp_${data.email.toLowerCase()}_login`, body.otp_code || body.otp_debug);
-        }
-        return body;
-      }
-      const err = await res.json();
-      throw new Error(err.detail || 'Invalid login credentials.');
+      return await handleResponse(res, 'Invalid login credentials.');
     } catch (e: any) {
-      if (e.message && e.message !== 'Failed to fetch') {
-        throw e;
-      }
-
-      const realOtp = generateRandom6DigitOTP();
-      sessionStorage.setItem(`cgwb_otp_${data.email.toLowerCase()}_login`, realOtp);
-
-      return {
-        status: 'requires_otp',
-        purpose: 'login',
-        message: `Login authorization OTP generated for ${data.email}.`,
-        otp_code: realOtp,
-        otp_debug: realOtp,
-        is_smtp_configured: false,
-        user: {
-          id: `usr-${Date.now()}`,
-          name: data.email.split('@')[0].replace('.', ' ').toUpperCase(),
-          email: data.email,
-          designation: 'Senior Hydrogeologist Officer',
-          district: 'National Command',
-          is_verified: true,
-        },
-      };
+      handleFetchError(e);
     }
   },
 
@@ -167,19 +104,9 @@ export const authApi = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-      if (res.ok) return await res.json();
-      const err = await res.json();
-      throw new Error(err.detail || 'Password reset request failed.');
+      return await handleResponse(res, 'Password reset request failed.');
     } catch (e: any) {
-      if (e.message && e.message !== 'Failed to fetch') throw e;
-
-      const realOtp = generateRandom6DigitOTP();
-      sessionStorage.setItem(`cgwb_otp_${email.toLowerCase()}_reset`, realOtp);
-
-      return {
-        status: 'success',
-        message: `Password reset 6-digit OTP code sent to ${email}.`,
-      };
+      handleFetchError(e);
     }
   },
 
@@ -190,16 +117,9 @@ export const authApi = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code, new_password: newPassword }),
       });
-      if (res.ok) return await res.json();
-      const err = await res.json();
-      throw new Error(err.detail || 'Reset password failed.');
+      return await handleResponse(res, 'Reset password failed.');
     } catch (e: any) {
-      if (e.message && e.message !== 'Failed to fetch') throw e;
-      if (!code || code.length !== 6) throw new Error('Invalid OTP code.');
-      return {
-        status: 'success',
-        message: 'Password updated successfully.',
-      };
+      handleFetchError(e);
     }
   },
 
@@ -208,7 +128,7 @@ export const authApi = {
       const res = await fetch(`${BACKEND_AUTH_URL}/login-history/${encodeURIComponent(email)}`);
       if (res.ok) return await res.json();
     } catch (e) {
-      // Fallback
+      console.warn('Failed to fetch login history from backend.', e);
     }
 
     return [
@@ -226,13 +146,6 @@ export const authApi = {
         user_agent: 'Desktop / Chrome 126 (Windows 11)',
         status: 'SUCCESS',
       },
-      {
-        id: 'log-3',
-        timestamp: new Date(Date.now() - 3600000 * 28).toISOString(),
-        ip_address: '192.168.1.45 (VPN Gateway)',
-        user_agent: 'Mobile / Chrome (Android 14)',
-        status: 'OTP Verified',
-      },
     ];
   },
 
@@ -245,7 +158,7 @@ export const authApi = {
       });
       if (res.ok) return await res.json();
     } catch (e) {
-      console.log('Dispatch API fallback mode triggered.');
+      console.warn('Dispatch API fallback triggered.', e);
     }
     return {
       status: 'success',
