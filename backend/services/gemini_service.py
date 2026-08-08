@@ -15,11 +15,13 @@ class GeminiService:
         self.api_key = settings.gemini_api_key
         self.enabled = bool(self.api_key and "YOUR_GEMINI_API_KEY" not in self.api_key)
         self.models_to_try = [
-            settings.gemini_model,
-            "gemini-flash-latest",
-            "gemini-2.0-flash-lite",
-            "gemini-2.5-flash-lite"
+            "gemini-1.5-flash-latest",
+            "gemini-2.0-flash-exp",
+            "gemini-1.5-pro-latest",
+            "gemini-1.5-flash",
+            "gemini-2.0-flash",
         ]
+
         
         if self.enabled:
             logger.info("Initializing Gemini API with configured key.")

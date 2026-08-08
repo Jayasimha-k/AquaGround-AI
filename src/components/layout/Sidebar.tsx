@@ -12,6 +12,7 @@ import {
 import { animate } from 'animejs';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 
@@ -21,29 +22,30 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: 
   AlertTriangle, Brain, FileText, Users, Settings,
 };
 
-const primaryItems = [
-  { id: 'dashboard',       label: 'Operations Center', path: '/',               icon: 'LayoutDashboard' },
-  { id: 'map',             label: 'Operations Map',    path: '/map',             icon: 'Map' },
-  { id: 'analytics',       label: 'Resource Intel',    path: '/analytics',       icon: 'BarChart3' },
-  { id: 'predictions',     label: 'Predictions',       path: '/predictions',     icon: 'TrendingUp' },
-  { id: 'risk',            label: 'Risk Monitor',      path: '/risk',            icon: 'AlertTriangle' },
-  { id: 'recommendations', label: 'Decision Center',   path: '/recommendations', icon: 'Brain' },
-  { id: 'reports',         label: 'Reports',           path: '/reports',         icon: 'FileText' },
-];
-
-const secondaryItems = [
-  { id: 'users',    label: 'User Management', path: '/users',    icon: 'Users' },
-  { id: 'settings', label: 'Settings',        path: '/settings', icon: 'Settings' },
-];
-
 export function Sidebar() {
   const { state, toggleSidebar, openAiAssistant } = useApp();
   const { currentUser, logout } = useAuth();
+  const { t } = useLanguage();
   const { sidebarCollapsed } = state;
   const location = useLocation();
   const sidebarRef = useRef<HTMLElement>(null);
   const [roadmapOpen, setRoadmapOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+
+  const primaryItems = [
+    { id: 'dashboard',       label: t('nav_dashboard', 'Operations Center'),       path: '/',               icon: 'LayoutDashboard' },
+    { id: 'map',             label: t('nav_map', 'Operations Map'),                path: '/map',             icon: 'Map' },
+    { id: 'analytics',       label: t('nav_analytics', 'Resource Intel'),            path: '/analytics',       icon: 'BarChart3' },
+    { id: 'predictions',     label: t('nav_predictions', 'Predictions'),             path: '/predictions',     icon: 'TrendingUp' },
+    { id: 'risk',            label: t('nav_risk', 'Risk Monitor'),                  path: '/risk',            icon: 'AlertTriangle' },
+    { id: 'recommendations', label: t('nav_decision', 'Decision Center'),           path: '/recommendations', icon: 'Brain' },
+    { id: 'reports',         label: t('nav_reports', 'Reports'),                   path: '/reports',         icon: 'FileText' },
+  ];
+
+  const secondaryItems = [
+    { id: 'users',    label: t('nav_users', 'User Management'), path: '/users',    icon: 'Users' },
+    { id: 'settings', label: t('nav_settings', 'Settings'),        path: '/settings', icon: 'Settings' },
+  ];
 
 
   useEffect(() => {

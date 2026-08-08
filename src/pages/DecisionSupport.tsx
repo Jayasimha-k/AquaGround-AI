@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Brain, AlertCircle, ChevronRight, FileText, Activity, ShieldAlert, Sliders } from 'lucide-react';
+import { Brain, AlertCircle, ChevronRight, FileText, Activity, ShieldAlert, Sliders, Volume2, VolumeX, Mic, Radio } from 'lucide-react';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -11,6 +11,8 @@ import { MOCK_RECOMMENDATIONS, MOCK_DECISIONS, MOCK_DISTRICTS } from '@/constant
 import type { AIRecommendation, DecisionStatus } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useVoiceAssistant } from '@/hooks/useVoiceAssistant';
 
 const PRIORITY_STYLE: Record<string, { dot: string; label: string; badge: any }> = {
   urgent: { dot: '#EF4444', label: 'Urgent Action',    badge: 'critical' },
@@ -49,8 +51,14 @@ const MAPPED_DETAILS: Record<string, { reason: string; evidence: string; action:
 
 export function DecisionSupport() {
   const { currentUser, dispatchDirectiveAlert } = useAuth();
+  const { t } = useLanguage();
   const [selectedRec, setSelectedRec] = useState<AIRecommendation | null>(MOCK_RECOMMENDATIONS[0]);
   const [officerNote, setOfficerNote] = useState('');
+
+  const { isSpeaking, isListening, speakText, stopSpeaking, startListening, stopListening } = useVoiceAssistant(
+    (spokenText) => setOfficerNote(prev => prev ? `${prev} ${spokenText}` : spokenText)
+  );
+
   const [modifyModalOpen, setModifyModalOpen] = useState(false);
   const [modifiedActionText, setModifiedActionText] = useState('');
   const [modifyReasonText, setModifyReasonText] = useState('');
@@ -198,9 +206,22 @@ export function DecisionSupport() {
                       <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
                         {selectedRec.districtName} Directive
                       </h3>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#2563EB', background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '4px 12px', borderRadius: '6px', flexShrink: 0 }}>
-                        Confidence: {selectedRec.confidence}%
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          icon={isSpeaking ? <VolumeX size={13} /> : <Volume2 size={13} />}
+                          onClick={() => {
+                            if (isSpeaking) stopSpeaking();
+                            else speakText(`Hydrogeological Directive for ${selectedRec.districtName}. Reason: ${details.reason}. Recommended Action: ${details.action}`);
+                          }}
+                        >
+                          {isSpeaking ? t('btn_stop_listen', 'Stop Audio') : t('btn_listen', 'Listen to Explanation')}
+                        </Button>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#2563EB', background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '4px 12px', borderRadius: '6px', flexShrink: 0 }}>
+                          Confidence: {selectedRec.confidence}%
+                        </span>
+                      </div>
                     </div>
                     <p style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600, marginTop: '5px' }}>
                       {MOCK_DISTRICTS.find(d => d.id === selectedRec.districtId)?.state || 'Monitored'} Aquifer Basin
@@ -240,14 +261,27 @@ export function DecisionSupport() {
 
               {/* Officer notes */}
               <div className="card" style={{ padding: '24px' }}>
-                <SectionHeader
-                  title="Officer Dispatch Observations"
-                  subtitle="Hydrological logs to attach to command record"
-                />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <SectionHeader
+                    title="Officer Dispatch Observations"
+                    subtitle="Hydrological logs to attach to command record"
+                  />
+                  <Button
+                    variant={isListening ? 'primary' : 'secondary'}
+                    size="sm"
+                    icon={isListening ? <Radio size={14} className="animate-pulse" /> : <Mic size={14} />}
+                    onClick={() => {
+                      if (isListening) stopListening();
+                      else startListening();
+                    }}
+                  >
+                    {isListening ? t('label_speech_listening', 'Listening…') : t('btn_voice_input', 'Speak Prompt (Mic)')}
+                  </Button>
+                </div>
                 <textarea
                   value={officerNote}
                   onChange={e => setOfficerNote(e.target.value)}
-                  placeholder="Enter hydrological observations, operational exceptions, or local field coordinates..."
+                  placeholder="Enter hydrological observations or click mic button above to speak in your regional language..."
                   rows={4}
                   style={{
                     width: '100%', marginTop: '16px', background: '#F8FAFC',

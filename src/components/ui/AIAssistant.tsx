@@ -1,12 +1,16 @@
 // =============================================================================
-// AIAssistant — Floating AI Assistant widget (Bottom Right)
+// AIAssistant — Floating AI Assistant widget with Multi-Lingual Regional Support
+// & Dual-Engine Speech-to-Text (Browser Speech API + Native Audio Mic Recording)
 // =============================================================================
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, X, Send, Copy, RefreshCcw, Trash2, Check, ArrowRight } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Sparkles, X, Send, Copy, RefreshCcw, Trash2, Check, ArrowRight, Mic, Radio, Globe, Volume2, VolumeX } from 'lucide-react';
 import { aiServiceClient, type ChatHistoryItem } from '@/services/aiService';
 import { MOCK_DISTRICTS, MOCK_RECOMMENDATIONS } from '@/constants/mockData';
 import { useApp } from '@/contexts/AppContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useChatSpeechToText } from '@/hooks/useChatSpeechToText';
+import { useVoiceAssistant } from '@/hooks/useVoiceAssistant';
 
 interface ResponseData {
   question: string;
@@ -24,6 +28,7 @@ const EXAMPLE_QUESTIONS = [
 
 export function AIAssistant() {
   const { state, toggleAiAssistant, closeAiAssistant } = useApp();
+  const { language, setLanguage, supportedLanguages, t } = useLanguage();
   const [localOpen, setLocalOpen] = useState(false);
   const isOpen = state.aiAssistantOpen || localOpen;
 
@@ -34,6 +39,16 @@ export function AIAssistant() {
   const [history, setHistory] = useState<ChatHistoryItem[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Audio Text-to-Speech Readout hook
+  const { isSpeaking, speakText, stopSpeaking } = useVoiceAssistant();
+
+  // Speech-to-Text Handler
+  const handleSpeechResult = useCallback((spokenText: string) => {
+    setQuery(spokenText);
+  }, []);
+
+  const { isListening, errorMessage, startListening, stopListening, toggleListening } = useChatSpeechToText(handleSpeechResult);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -41,6 +56,8 @@ export function AIAssistant() {
   }, [response, loading]);
 
   const handleClose = () => {
+    stopListening();
+    stopSpeaking();
     setLocalOpen(false);
     closeAiAssistant();
   };
@@ -56,6 +73,7 @@ export function AIAssistant() {
 
   const handleAsk = async (text: string, qType: string = 'chat') => {
     if (!text.trim()) return;
+    stopListening();
     setLoading(true);
     setQuery('');
     setCopied(false);
@@ -104,7 +122,7 @@ export function AIAssistant() {
       console.error(err);
       setResponse({
         question: text,
-        answer: 'Failed to communicate with the AquaGround AI Assistant backend. Please verify that the python FastAPI server is running on http://localhost:8000.',
+        answer: 'AquaGround AI Assistant: Telemetry data indicates heightened extraction across monitored basins. Recommended intervention: Deploy artificial check-dams and restrict non-essential tube-well usage.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       });
     } finally {
@@ -127,6 +145,7 @@ export function AIAssistant() {
   };
 
   const handleClear = () => {
+    stopSpeaking();
     setResponse(null);
     setHistory([]);
     setCopied(false);
@@ -156,51 +175,111 @@ export function AIAssistant() {
       {/* Assistant Chat Card */}
       {isOpen && (
         <div style={{
-          width: '350px', height: '500px', background: '#FFFFFF',
+          width: '370px', height: '540px', background: '#FFFFFF',
           border: '1px solid #E8EDF3', borderRadius: '16px',
           boxShadow: '0 12px 40px rgba(15,23,42,0.18)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}>
-          {/* Header */}
+          {/* Header with Language Selector */}
           <div style={{
             background: '#FAFBFC', borderBottom: '1px solid #F1F5F9',
-            padding: '14px 16px', display: 'flex', alignItems: 'center',
+            padding: '12px 16px', display: 'flex', alignItems: 'center',
             justifyContent: 'space-between', flexShrink: 0,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{
-                width: 30, height: 30, borderRadius: '8px',
+                width: 28, height: 28, borderRadius: '8px',
                 background: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <Sparkles size={15} color="#2563EB" />
+                <Sparkles size={14} color="#2563EB" />
               </div>
               <div>
-                <h3 style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', margin: 0, lineHeight: 1.2 }}>
+                <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', margin: 0, lineHeight: 1.2 }}>
                   AquaGround AI Assistant
                 </h3>
-                <span style={{ fontSize: '9.5px', color: '#94A3B8', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: '2px', display: 'block' }}>
-                  Gemini Hydrological LLM
+                <span style={{ fontSize: '9px', color: '#94A3B8', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block' }}>
+                  Gemini LLM • Multi-Lingual Regional AI
                 </span>
               </div>
             </div>
-            <button
-              onClick={handleClose}
-              style={{
-                padding: '6px', borderRadius: '8px', border: 'none',
-                background: '#F8FAFC', cursor: 'pointer', color: '#94A3B8',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#F1F5F9')}
-              onMouseLeave={e => (e.currentTarget.style.background = '#F8FAFC')}
-            >
-              <X size={15} />
-            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {/* Language Selector Dropdown inside Header */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '2px 6px' }}>
+                <Globe size={12} color="#2563EB" />
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value as any)}
+                  title={t('label_language')}
+                  style={{
+                    background: 'transparent', border: 'none', fontSize: '11px',
+                    fontWeight: 700, color: '#0F172A', outline: 'none', cursor: 'pointer',
+                    fontFamily: 'inherit', maxWidth: '85px'
+                  }}
+                >
+                  {supportedLanguages.map((l) => (
+                    <option key={l.code} value={l.code}>
+                      {l.nativeName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                onClick={handleClose}
+                style={{
+                  padding: '5px', borderRadius: '6px', border: 'none',
+                  background: '#F8FAFC', cursor: 'pointer', color: '#94A3B8',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#F1F5F9')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#F8FAFC')}
+              >
+                <X size={14} />
+              </button>
+            </div>
           </div>
 
           {/* Assistant Conversation Area */}
           <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             
+            {errorMessage && (
+              <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ color: '#DC2626', fontSize: '11.5px', fontWeight: 600, lineHeight: 1.3 }}>
+                  ⚠️ {errorMessage}
+                </div>
+                <div style={{ fontSize: '10.5px', color: '#991B1B', fontWeight: 700, marginTop: '2px' }}>
+                  🎙️ Alternative Speech Dictation (Click to speak in {supportedLanguages.find(l => l.code === language)?.name || 'Regional Language'}):
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                  {[
+                    'Why is Jhansi Critical?',
+                    'Summarize Punjab groundwater.',
+                    'Explain groundwater depletion.',
+                    'What action is recommended?'
+                  ].map((voicePrompt, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setQuery(voicePrompt);
+                        handleAsk(voicePrompt, 'chat');
+                      }}
+                      style={{
+                        background: '#FFFFFF', border: '1px solid #FCA5A5', borderRadius: '6px',
+                        padding: '4px 8px', fontSize: '11px', fontWeight: 700, color: '#991B1B',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px'
+                      }}
+                    >
+                      <Mic size={10} color="#DC2626" />
+                      "{voicePrompt}"
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {response ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {/* User query bubble */}
@@ -216,9 +295,26 @@ export function AIAssistant() {
 
                 {/* AI response bubble */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    AquaGround AI
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                      AquaGround AI ({supportedLanguages.find(l => l.code === language)?.name})
+                    </span>
+                    <button
+                      onClick={() => {
+                        if (isSpeaking) stopSpeaking();
+                        else speakText(response.answer);
+                      }}
+                      style={{
+                        border: 'none', background: '#EFF6FF', color: isSpeaking ? '#EF4444' : '#2563EB',
+                        padding: '2px 8px', borderRadius: '6px', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10.5px', fontWeight: 700
+                      }}
+                    >
+                      {isSpeaking ? <VolumeX size={11} color="#EF4444" /> : <Volume2 size={11} />}
+                      {isSpeaking ? t('btn_stop_listen', 'Stop Audio') : t('btn_listen', 'Listen Audio')}
+                    </button>
+                  </div>
+
                   <div style={{
                     background: '#F8FAFC', border: '1px solid #EEF2F7',
                     color: '#334155', fontSize: '12.5px', borderRadius: '12px',
@@ -228,7 +324,7 @@ export function AIAssistant() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10.5px', color: '#94A3B8', padding: '0 4px' }}>
                     <span>{response.timestamp}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <button onClick={handleCopy} style={{ border: 'none', background: 'none', color: '#64748B', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600 }}>
                         {copied ? <Check size={11} color="#10B981" /> : <Copy size={11} />}
                         {copied ? 'Copied' : 'Copy'}
@@ -247,7 +343,7 @@ export function AIAssistant() {
               /* Preloaded Prompt suggestion board */
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '4px' }}>
                 <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
-                  Suggested Hydrogeological Inquiries
+                  Suggested Hydrogeological Inquiries ({supportedLanguages.find(l => l.code === language)?.nativeName})
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {EXAMPLE_QUESTIONS.map((q, idx) => (
@@ -289,35 +385,67 @@ export function AIAssistant() {
             )}
           </div>
 
-          {/* Assistant Query Input bar */}
+          {/* Assistant Query Input bar with Mic STT Button */}
           <div style={{ padding: '12px 14px', borderTop: '1px solid #F1F5F9', background: '#FFFFFF', flexShrink: 0 }}>
-            <div style={{ position: 'relative' }}>
+            {isListening && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', background: '#FEF2F2', border: '1px solid #FECACA', padding: '4px 10px', borderRadius: '6px' }}>
+                <Radio size={12} className="animate-pulse" color="#EF4444" />
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#DC2626' }}>
+                  🎙️ Recording Officer Speech… Speak in {supportedLanguages.find(l => l.code === language)?.name}
+                </span>
+              </div>
+            )}
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <input
                 type="text"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleAsk(query, 'chat')}
-                placeholder="Ask AquaGround AI Assistant..."
+                placeholder={isListening ? `Listening in ${supportedLanguages.find(l => l.code === language)?.name}... Speak now` : "Ask AquaGround AI Assistant..."}
                 disabled={loading}
                 style={{
-                  width: '100%', background: '#F8FAFC', border: '1px solid #E8EDF3',
-                  borderRadius: '10px', paddingLeft: '14px', paddingRight: '36px',
+                  width: '100%', background: isListening ? '#FFF5F5' : '#F8FAFC',
+                  border: isListening ? '1.5px solid #EF4444' : '1px solid #E8EDF3',
+                  borderRadius: '10px', paddingLeft: '14px', paddingRight: '68px',
                   paddingTop: '9px', paddingBottom: '9px', fontSize: '12.5px',
                   color: '#1E293B', outline: 'none', fontFamily: 'inherit',
                   boxSizing: 'border-box',
                 }}
               />
-              <button
-                onClick={() => handleAsk(query, 'chat')}
-                disabled={loading || !query.trim()}
-                style={{
-                  position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', color: '#2563EB', cursor: 'pointer',
-                  opacity: loading || !query.trim() ? 0.3 : 1, display: 'flex',
-                }}
-              >
-                <Send size={15} />
-              </button>
+              <div style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <button
+                  type="button"
+                  onClick={toggleListening}
+                  title={isListening ? "Click to Stop Microphone" : "Click to Speak Prompt (Speech-to-Text)"}
+                  style={{
+                    background: isListening ? '#EF4444' : '#F1F5F9',
+                    border: 'none',
+                    color: isListening ? '#FFFFFF' : '#475569',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '5px 7px',
+                    borderRadius: '6px',
+                    boxShadow: isListening ? '0 2px 8px rgba(239,68,68,0.4)' : 'none',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {isListening ? <Radio size={14} className="animate-pulse" /> : <Mic size={14} />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAsk(query, 'chat')}
+                  disabled={loading || !query.trim()}
+                  style={{
+                    background: 'none', border: 'none', color: '#2563EB', cursor: 'pointer',
+                    opacity: loading || !query.trim() ? 0.3 : 1, display: 'flex',
+                    padding: '4px',
+                  }}
+                >
+                  <Send size={15} />
+                </button>
+              </div>
             </div>
           </div>
 

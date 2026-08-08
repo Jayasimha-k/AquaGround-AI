@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from '@/contexts/AppContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Dashboard } from '@/pages/Dashboard';
 import { MapPage } from '@/pages/MapPage';
@@ -44,9 +45,11 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppProvider>
-          <ProtectedApp />
-        </AppProvider>
+        <LanguageProvider>
+          <AppProvider>
+            <ProtectedApp />
+          </AppProvider>
+        </LanguageProvider>
       </AuthProvider>
     </BrowserRouter>
   );

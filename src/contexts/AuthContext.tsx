@@ -202,7 +202,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return {
       requiresOtp: res.status === 'requires_otp',
       purpose: res.purpose || 'login',
-      otp_debug: res.otp_debug,
+      otp_debug: res.otp_code || res.otp_debug,
       message: res.message
     };
   };

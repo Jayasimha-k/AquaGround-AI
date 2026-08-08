@@ -540,12 +540,37 @@ export const Login: React.FC = () => {
             }}>
               <span style={{ fontSize: '12px', fontWeight: 700, color: '#1D4ED8', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                 <Mail size={16} />
-                Real 6-Digit Email OTP Dispatched
+                Email OTP Dispatched
               </span>
               <p style={{ fontSize: '11.5px', color: '#3B82F6', margin: '4px 0 0 0', fontWeight: 500 }}>
-                Please check your email inbox (<strong>{otpTargetEmail}</strong>) and enter the code below.
+                Verification code dispatched for <strong>{otpTargetEmail}</strong>.
               </p>
             </div>
+
+            {otpDebugHint && (
+              <div style={{
+                background: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: '10px',
+                padding: '10px 14px', textAlign: 'center'
+              }}>
+                <p style={{ fontSize: '12px', fontWeight: 700, color: '#92400E', margin: 0 }}>
+                  ⚡ Verification OTP Code: <span style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '2px', background: '#FDE68A', padding: '2px 8px', borderRadius: '4px', color: '#78350F' }}>{otpDebugHint}</span>
+                </p>
+                <p style={{ fontSize: '10.5px', color: '#B45309', margin: '4px 0 6px 0' }}>
+                  (Add Gmail SMTP credentials in <code>.env</code> to deliver directly to your actual Gmail inbox)
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setOtpCode(otpDebugHint)}
+                  style={{
+                    background: '#D97706', color: '#FFFFFF', border: 'none', padding: '5px 12px',
+                    borderRadius: '6px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(217,119,6,0.3)'
+                  }}
+                >
+                  Auto-Fill {otpDebugHint}
+                </button>
+              </div>
+            )}
 
             <div>
               <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '6px', textAlign: 'center' }}>
@@ -556,7 +581,7 @@ export const Login: React.FC = () => {
                 maxLength={6}
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
-                placeholder="849201"
+                placeholder={otpDebugHint || "849201"}
                 style={{
                   width: '100%', background: '#F8FAFC', border: '2px solid #2563EB',
                   borderRadius: '10px', padding: '12px', fontSize: '22px', fontWeight: 800,

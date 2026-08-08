@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Download, Search, Printer, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { FileText, Download, Search, Printer, CheckCircle, Clock, AlertCircle, Volume2, VolumeX, BarChart2, TrendingDown } from 'lucide-react';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -8,6 +8,8 @@ import { MOCK_REPORTS, MOCK_DISTRICTS } from '@/constants/mockData';
 import { generateCGWBReportPDF } from '@/services/pdfReportService';
 import type { Report } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useVoiceAssistant } from '@/hooks/useVoiceAssistant';
 
 const TYPE_LABELS: Record<string, string> = {
   monthly:   'Monthly Survey',
@@ -27,6 +29,9 @@ const TYPE_STYLE: Record<string, { color: string; bg: string; border: string }> 
 
 export function Reports() {
   const { dispatchDirectiveAlert } = useAuth();
+  const { t } = useLanguage();
+  const { isSpeaking, speakText, stopSpeaking } = useVoiceAssistant();
+
   const [selected, setSelected] = useState<Report>(MOCK_REPORTS[0]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -60,6 +65,14 @@ export function Reports() {
     );
   };
 
+  const handleListenReport = () => {
+    if (isSpeaking) {
+      stopSpeaking();
+    } else {
+      const summaryText = `CGWB Official Hydrological Survey Report for ${selectedDistrictObj.name}, ${selectedDistrictObj.state}. Groundwater table depth is recorded at ${selectedDistrictObj.groundwaterDepth} meters below ground level. Groundwater Sustainability Score is ${selectedDistrictObj.healthScore} out of 100. Status is ${selectedDistrictObj.riskLevel === 'critical' ? 'Critical' : 'Stable'}.`;
+      speakText(summaryText);
+    }
+  };
 
   const filtered = MOCK_REPORTS.filter(r => {
     const matchSearch = r.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -69,9 +82,29 @@ export function Reports() {
 
   const typeStyle = TYPE_STYLE[selected.type] ?? TYPE_STYLE.monthly;
 
+  // Mock 12-month depth trajectory data for visual charts
+  const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const baseVal = selectedDistrictObj.groundwaterDepth;
+  const mockDepths = [
+    Number((baseVal - 1.8).toFixed(1)),
+    Number((baseVal - 1.2).toFixed(1)),
+    Number((baseVal - 0.5).toFixed(1)),
+    Number((baseVal + 0.4).toFixed(1)),
+    Number((baseVal + 1.2).toFixed(1)),
+    Number((baseVal + 2.1).toFixed(1)),
+    Number((baseVal + 1.5).toFixed(1)),
+    Number((baseVal + 0.2).toFixed(1)),
+    Number((baseVal - 0.8).toFixed(1)),
+    Number((baseVal - 1.4).toFixed(1)),
+    Number((baseVal - 1.9).toFixed(1)),
+    Number(baseVal.toFixed(1)),
+  ];
+
+  const maxDepth = Math.max(...mockDepths);
+
   return (
     <PageContainer
-      title="CGWB Survey & Audit Repository"
+      title={t('nav_reports', 'CGWB Survey & Audit Repository')}
       subtitle="Access generated hydrological summaries, district-level audits, and official CGWB PDF reports"
       actions={
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -88,18 +121,28 @@ export function Reports() {
               <option key={d.id} value={d.id}>{d.name} ({d.state})</option>
             ))}
           </select>
-          <Button variant="secondary" size="sm" icon={<Printer size={14} />} onClick={() => window.print()}>
-            Print View
+
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={isSpeaking ? <VolumeX size={14} /> : <Volume2 size={14} />}
+            onClick={handleListenReport}
+          >
+            {isSpeaking ? t('btn_stop_listen', 'Stop Audio') : t('btn_listen', 'Listen to Summary')}
           </Button>
+
+          <Button variant="secondary" size="sm" icon={<Printer size={14} />} onClick={() => window.print()}>
+            {t('btn_print', 'Print View')}
+          </Button>
+          
           <Button variant="primary" size="sm" icon={<FileText size={14} />} onClick={() => handleGeneratePDF(selectedDistrictObj)}>
-            Export CGWB PDF Report
+            {t('btn_export_pdf', 'Export CGWB PDF Report')}
           </Button>
         </div>
       }
-
     >
       {/* 2-column: document list | detail panel */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '20px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: '20px', alignItems: 'start' }}>
 
         {/* ── Left: Document List ───────────────────────────────────────── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -201,11 +244,11 @@ export function Reports() {
           </div>
         </div>
 
-        {/* ── Right: Document Preview ───────────────────────────────────── */}
+        {/* ── Right: Document Preview & Visual Charts Panel ───────────────── */}
         <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: 500 }}>
 
           {/* Document header */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', paddingBottom: '20px', borderBottom: '1px solid #F1F5F9' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', paddingBottom: '16px', borderBottom: '1px solid #F1F5F9' }}>
             <div style={{
               width: 44, height: 44, borderRadius: '12px', flexShrink: 0,
               background: typeStyle.bg, border: `1px solid ${typeStyle.border}`,
@@ -235,56 +278,91 @@ export function Reports() {
           </div>
 
           {/* Metadata grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             {[
-              { label: 'Survey Period',  value: selected.period },
-              { label: 'Document Size',  value: selected.fileSize },
-              { label: 'Total Pages',    value: `${selected.pages} pp` },
-              { label: 'Verified By',    value: selected.generatedBy },
+              { label: 'Target District',  value: `${selectedDistrictObj.name}` },
+              { label: 'Survey Period',    value: selected.period },
+              { label: 'Water Table Depth', value: `${selectedDistrictObj.groundwaterDepth}m BGL` },
+              { label: 'GSI Health Score', value: `${selectedDistrictObj.healthScore}/100` },
             ].map(item => (
-              <div key={item.label} style={{ background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '10px', padding: '14px 16px' }}>
-                <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 5px 0' }}>
+              <div key={item.label} style={{ background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '10px', padding: '12px 14px' }}>
+                <p style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>
                   {item.label}
                 </p>
-                <p style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <p style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {item.value}
                 </p>
               </div>
             ))}
           </div>
 
-          {/* PDF Preview visual */}
-          <div style={{
-            flex: 1, background: '#F8FAFC', border: '1px dashed #CBD5E1',
-            borderRadius: '12px', display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center', gap: '12px',
-            padding: '32px', position: 'relative', overflow: 'hidden', minHeight: '140px',
-          }}>
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: '#2563EB', borderRadius: '12px 12px 0 0' }} />
-            <FileText size={36} style={{ color: '#93C5FD' }} />
-            <div style={{ textAlign: 'center' }}>
-              <p style={{ fontSize: '13px', fontWeight: 700, color: '#334155', margin: '0 0 4px 0' }}>
-                CGWB Official Hydrological PDF Audit
-              </p>
-              <p style={{ fontSize: '11.5px', color: '#94A3B8', margin: 0, fontFamily: 'monospace' }}>
-                {selected.fileSize} · {selected.pages} pages
-              </p>
+          {/* ── VISUAL CHARTS & BAR GRAPHS (REVIEWER SUGGESTION 1) ─────────────── */}
+          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <BarChart2 size={16} color="#2563EB" />
+                {t('report_visuals_title', 'District Telemetry & Visual Charts')}
+              </span>
+              <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#2563EB', background: '#EFF6FF', padding: '2px 8px', borderRadius: '4px' }}>
+                CGWB Live
+              </span>
             </div>
-            <div style={{ width: '140px', height: '6px', background: '#E2E8F0', borderRadius: '99px', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: '75%', background: 'linear-gradient(90deg, #3B82F6, #6366F1)', borderRadius: '99px' }} />
+
+            {/* 12-Month Water Table Trend Bars */}
+            <div style={{ marginBottom: '14px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#475569', margin: '0 0 8px 0', display: 'flex', justifyContent: 'space-between' }}>
+                <span>{t('report_water_trend', '12-Month Water Table Depth Trend (m BGL)')}</span>
+                <span style={{ color: '#2563EB' }}>Avg: {selectedDistrictObj.groundwaterDepth}m</span>
+              </p>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '60px', padding: '4px 0' }}>
+                {mockDepths.map((d, i) => {
+                  const pct = Math.min(100, Math.max(15, (d / maxDepth) * 100));
+                  return (
+                    <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+                      <div
+                        title={`${monthLabels[i]}: ${d}m BGL`}
+                        style={{
+                          width: '100%',
+                          height: `${pct}%`,
+                          background: d > 15 ? 'linear-gradient(180deg, #F87171, #EF4444)' : 'linear-gradient(180deg, #60A5FA, #2563EB)',
+                          borderRadius: '3px 3px 0 0',
+                          transition: 'height 0.3s ease',
+                        }}
+                      />
+                      <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#94A3B8' }}>{monthLabels[i]}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Groundwater Sustainability Index (GSI) Visual Bar */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                <span>{t('report_gsi_meter', 'Groundwater Sustainability Index (GSI)')}</span>
+                <span style={{ color: selectedDistrictObj.healthScore < 50 ? '#EF4444' : '#10B981' }}>{selectedDistrictObj.healthScore}%</span>
+              </div>
+              <div style={{ width: '100%', height: '8px', background: '#E2E8F0', borderRadius: '99px', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: `${selectedDistrictObj.healthScore}%`,
+                  background: selectedDistrictObj.healthScore < 50 ? 'linear-gradient(90deg, #EF4444, #F59E0B)' : 'linear-gradient(90deg, #3B82F6, #10B981)',
+                  borderRadius: '99px',
+                  transition: 'width 0.4s ease'
+                }} />
+              </div>
             </div>
           </div>
 
           {/* Actions */}
-          <div style={{ paddingTop: '16px', borderTop: '1px solid #F1F5F9', display: 'flex', gap: '10px' }}>
+          <div style={{ paddingTop: '12px', borderTop: '1px solid #F1F5F9', display: 'flex', gap: '10px' }}>
             <Button
               variant="primary"
               icon={<Download size={15} />}
               fullWidth
               onClick={() => handleGeneratePDF(selectedDistrictObj)}
-
             >
-              Export CGWB Report PDF
+              {t('btn_export_pdf', 'Export CGWB Report PDF')}
             </Button>
             <Button variant="secondary" icon={<Printer size={15} />} onClick={() => window.print()} />
           </div>
@@ -294,4 +372,3 @@ export function Reports() {
     </PageContainer>
   );
 }
-

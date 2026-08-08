@@ -49,7 +49,11 @@ export const authApi = {
         body: JSON.stringify(data),
       });
       if (res.ok) {
-        return await res.json();
+        const body = await res.json();
+        if (body.otp_code || body.otp_debug) {
+          sessionStorage.setItem(`cgwb_otp_${data.email.toLowerCase()}_verification`, body.otp_code || body.otp_debug);
+        }
+        return body;
       }
       const err = await res.json();
       throw new Error(err.detail || 'Registration failed.');
@@ -60,12 +64,14 @@ export const authApi = {
       // Dynamic real OTP generation for fallback
       const realOtp = generateRandom6DigitOTP();
       sessionStorage.setItem(`cgwb_otp_${data.email.toLowerCase()}_verification`, realOtp);
-      console.log(`[REAL OTP DISPATCHED TO EMAIL: ${data.email}]: ${realOtp}`);
 
       return {
         status: 'success',
-        message: `Real 6-digit OTP verification code sent to your email inbox (${data.email}). Please check Inbox/Spam.`,
+        message: `OTP verification code generated for ${data.email}.`,
         email: data.email,
+        otp_code: realOtp,
+        otp_debug: realOtp,
+        is_smtp_configured: false,
       };
     }
   },
@@ -89,7 +95,7 @@ export const authApi = {
       
       const storedOtp = sessionStorage.getItem(`cgwb_otp_${data.email.toLowerCase()}_${data.purpose}`);
       if (storedOtp && data.code.trim() !== storedOtp && data.code.trim() !== '849201') {
-        throw new Error('Invalid OTP code. Please enter the exact 6-digit code sent to your email inbox.');
+        throw new Error('Invalid OTP code. Please enter the exact 6-digit code displayed on screen or sent to your email.');
       }
 
       if (!data.code || data.code.length !== 6) {
@@ -119,7 +125,11 @@ export const authApi = {
         body: JSON.stringify(data),
       });
       if (res.ok) {
-        return await res.json();
+        const body = await res.json();
+        if (body.otp_code || body.otp_debug) {
+          sessionStorage.setItem(`cgwb_otp_${data.email.toLowerCase()}_login`, body.otp_code || body.otp_debug);
+        }
+        return body;
       }
       const err = await res.json();
       throw new Error(err.detail || 'Invalid login credentials.');
@@ -134,7 +144,10 @@ export const authApi = {
       return {
         status: 'requires_otp',
         purpose: 'login',
-        message: `Real login authorization OTP dispatched to ${data.email}. Please check your email inbox.`,
+        message: `Login authorization OTP generated for ${data.email}.`,
+        otp_code: realOtp,
+        otp_debug: realOtp,
+        is_smtp_configured: false,
         user: {
           id: `usr-${Date.now()}`,
           name: data.email.split('@')[0].replace('.', ' ').toUpperCase(),

@@ -3,10 +3,11 @@
 // =============================================================================
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, Bell, RefreshCw, ChevronDown, X, User, LogOut, ShieldCheck, UserCheck, Clock } from 'lucide-react';
+import { Search, Bell, RefreshCw, ChevronDown, X, User, LogOut, ShieldCheck, UserCheck, Clock, Globe } from 'lucide-react';
 import { animate } from 'animejs';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { OfficerProfileModal } from '@/components/OfficerProfileModal';
 import { MOCK_ALERTS } from '@/constants/mockData';
 import { formatDistanceToNow } from 'date-fns';
@@ -14,6 +15,7 @@ import { formatDistanceToNow } from 'date-fns';
 export function TopBar() {
   const { state, toggleNotificationPanel, markNotificationsRead } = useApp();
   const { currentUser, logout, openProfileModal } = useAuth();
+  const { language, setLanguage, supportedLanguages, t } = useLanguage();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -163,6 +165,32 @@ export function TopBar() {
             </span>
           )}
         </button>
+
+        {/* Regional Language Picker */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '2px 8px' }}>
+          <Globe size={14} color="#2563EB" />
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value as any)}
+            title={t('label_language')}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              fontSize: '12px',
+              fontWeight: 700,
+              color: '#0F172A',
+              outline: 'none',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            {supportedLanguages.map((l) => (
+              <option key={l.code} value={l.code}>
+                {l.nativeName} ({l.name})
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* Divider */}
         <div style={{ height: '20px', width: '1px', background: '#E2E8F0', flexShrink: 0 }} />
