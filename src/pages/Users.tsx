@@ -5,6 +5,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDistanceToNow } from 'date-fns';
 
 export interface OfficialUserAccount {
@@ -99,6 +100,7 @@ const INITIAL_OFFICIAL_USERS: OfficialUserAccount[] = [
 
 export function Users() {
   const { currentUser, logout, openProfileModal } = useAuth();
+  const { t } = useLanguage();
   const [usersList, setUsersList] = useState<OfficialUserAccount[]>(INITIAL_OFFICIAL_USERS);
   const [search, setSearch] = useState('');
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -150,8 +152,8 @@ export function Users() {
 
   return (
     <PageContainer
-      title="User Management & Auth Control"
-      subtitle="Configure administrative roles, user authorization boundaries, and active sessions"
+      title={t('users_title', 'User Management & Auth Control')}
+      subtitle={t('users_subtitle', 'Configure administrative roles, user authorization boundaries, and active sessions')}
       actions={
         <div style={{ display: 'flex', gap: '10px' }}>
           <Button
@@ -160,7 +162,7 @@ export function Users() {
             icon={<UserCheck size={14} />}
             onClick={() => openProfileModal()}
           >
-            Officer Profile & Audit Logs
+            {t('officer_profile', 'Officer Profile & Audit Logs')}
           </Button>
           <Button
             variant="secondary"
@@ -168,7 +170,7 @@ export function Users() {
             icon={<LogOut size={14} />}
             onClick={() => logout()}
           >
-            Lock Session / Log Out
+            {t('lock_session', 'Lock Session / Log Out')}
           </Button>
           <Button
             variant="primary"
@@ -176,7 +178,7 @@ export function Users() {
             icon={<Plus size={14} />}
             onClick={() => setAddModalOpen(true)}
           >
-            Add User Account
+            {t('add_user', 'Add User Account')}
           </Button>
         </div>
       }

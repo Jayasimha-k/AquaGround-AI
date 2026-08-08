@@ -155,7 +155,7 @@ export function Reports() {
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search audit database by document title..."
+                placeholder={t('search_database_ph', 'Search audit database by document title...')}
                 style={{
                   width: '100%', background: '#FFFFFF', border: '1px solid #E8EDF3',
                   borderRadius: '10px', paddingLeft: '42px', paddingRight: '16px',
@@ -175,12 +175,12 @@ export function Reports() {
                 boxShadow: '0 1px 3px rgba(15,23,42,0.05)', flexShrink: 0,
               }}
             >
-              <option value="all">All Documents</option>
-              <option value="monthly">Monthly Survey</option>
-              <option value="quarterly">Quarterly Audit</option>
-              <option value="annual">Annual Report</option>
-              <option value="custom">Ad-hoc Survey</option>
-              <option value="alert">Alert Log</option>
+              <option value="all">{t('filter_all_docs', 'All Documents')}</option>
+              <option value="monthly">{t('filter_monthly', 'Monthly Survey')}</option>
+              <option value="quarterly">{t('filter_quarterly', 'Quarterly Audit')}</option>
+              <option value="annual">{t('filter_annual', 'Annual Report')}</option>
+              <option value="custom">{t('filter_adhoc', 'Ad-hoc Survey')}</option>
+              <option value="alert">{t('filter_alert_log', 'Alert Log')}</option>
             </select>
           </div>
 
@@ -280,10 +280,10 @@ export function Reports() {
           {/* Metadata grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             {[
-              { label: 'Target District',  value: `${selectedDistrictObj.name}` },
-              { label: 'Survey Period',    value: selected.period },
-              { label: 'Water Table Depth', value: `${selectedDistrictObj.groundwaterDepth}m BGL` },
-              { label: 'GSI Health Score', value: `${selectedDistrictObj.healthScore}/100` },
+              { label: t('target_district', 'Target District'),  value: `${selectedDistrictObj.name}` },
+              { label: t('survey_period', 'Survey Period'),    value: selected.period },
+              { label: t('bgl_depth', 'Water Table Depth'), value: `${selectedDistrictObj.groundwaterDepth}m BGL` },
+              { label: t('gsi_health_score', 'GSI Health Score'), value: `${selectedDistrictObj.healthScore}/100` },
             ].map(item => (
               <div key={item.label} style={{ background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '10px', padding: '12px 14px' }}>
                 <p style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>
@@ -296,7 +296,7 @@ export function Reports() {
             ))}
           </div>
 
-          {/* ── VISUAL CHARTS & BAR GRAPHS (REVIEWER SUGGESTION 1) ─────────────── */}
+          {/* ── VISUAL CHARTS & BAR GRAPHS ─────────────────────────────── */}
           <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
               <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>

@@ -1,7 +1,3 @@
-// =============================================================================
-// Module 5: Risk Monitor (Triage Command Board)
-// =============================================================================
-
 import React, { useState } from 'react';
 import { AlertTriangle, ShieldCheck } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker, Tooltip } from 'react-leaflet';
@@ -13,6 +9,7 @@ import { Timeline } from '@/components/ui/Timeline';
 import { MOCK_DISTRICTS, MOCK_ALERTS } from '@/constants/mockData';
 import { MAP_CONFIG, RISK_COLORS } from '@/constants';
 import { formatDistanceToNow } from 'date-fns';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const alertTimelineEvents = MOCK_ALERTS.slice(0, 5).map(a => ({
   id: a.id,
@@ -25,6 +22,7 @@ const alertTimelineEvents = MOCK_ALERTS.slice(0, 5).map(a => ({
 }));
 
 export function RiskAssessment() {
+  const { t } = useLanguage();
   const [selectedId, setSelectedId] = useState(MOCK_DISTRICTS[0].id);
   const selectedDistrict = MOCK_DISTRICTS.find(d => d.id === selectedId) || MOCK_DISTRICTS[0];
   const criticalDistricts = MOCK_DISTRICTS.filter(d => d.riskLevel === 'critical' || d.riskLevel === 'high');
@@ -39,8 +37,8 @@ export function RiskAssessment() {
 
   return (
     <PageContainer
-      title="Regional Risk Monitor"
-      subtitle="Hydrological risk triaging, critical basins, and escalation pipelines"
+      title={t('risk_title', 'Regional Risk Monitor')}
+      subtitle={t('risk_subtitle', 'Hydrological risk triaging, critical basins, and escalation pipelines')}
     >
       {/* 3-column grid: sidebar | map+details | timeline */}
       <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr 300px', gap: '20px', minHeight: 600 }}>
@@ -48,8 +46,8 @@ export function RiskAssessment() {
         {/* ── Left: Basin Action Queue ──────────────────────────────────── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <SectionHeader
-            title="Basin Action Queue"
-            subtitle="Regions in critical depletion zone"
+            title={t('basin_action_queue', 'Basin Action Queue')}
+            subtitle={t('regions_critical_zone', 'Regions in critical depletion zone')}
           />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto', maxHeight: 580 }}>
             {criticalDistricts.map(d => {
@@ -103,8 +101,8 @@ export function RiskAssessment() {
           {/* Risk Map */}
           <div className="card" style={{ padding: '24px' }}>
             <SectionHeader
-              title="India Risk Mapping"
-              subtitle="Geographic view of over-extracted aquifer regions"
+              title={t('india_risk_mapping', 'India Risk Mapping')}
+              subtitle={t('geographic_view', 'Geographic view of over-extracted aquifer regions')}
             />
             <div style={{
               height: 260, width: '100%', borderRadius: '10px',
@@ -147,7 +145,7 @@ export function RiskAssessment() {
               <div>
                 <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <ShieldCheck size={16} color="#3B82F6" />
-                  {selectedDistrict.name} Diagnostics
+                  {selectedDistrict.name} {t('diagnostics', 'Diagnostics')}
                 </h3>
                 <p style={{ fontSize: '12px', color: '#64748B', marginTop: '4px', fontWeight: 500 }}>{selectedDistrict.state}</p>
               </div>
@@ -156,10 +154,10 @@ export function RiskAssessment() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '14px' }}>
               {[
-                { label: 'BGL Depth',      value: `${selectedDistrict.groundwaterDepth} m`, color: '#0F172A' },
-                { label: 'Annual Deficit', value: `${(selectedDistrict.extractionRate - selectedDistrict.rechargeRate).toFixed(1)} MCM`, color: '#EF4444' },
-                { label: 'Active Nodes',   value: `${selectedDistrict.activeSensors} DWLR`,  color: '#0F172A' },
-                { label: 'Trend Rate',     value: `${(selectedDistrict.groundwaterDepth * 0.05).toFixed(1)} m/mo`, color: '#0F172A' },
+                { label: t('bgl_depth', 'BGL Depth'),      value: `${selectedDistrict.groundwaterDepth} m`, color: '#0F172A' },
+                { label: t('annual_deficit', 'Annual Deficit'), value: `${(selectedDistrict.extractionRate - selectedDistrict.rechargeRate).toFixed(1)} MCM`, color: '#EF4444' },
+                { label: t('active_nodes', 'Active Nodes'),   value: `${selectedDistrict.activeSensors} DWLR`,  color: '#0F172A' },
+                { label: t('trend_rate', 'Trend Rate'),     value: `${(selectedDistrict.groundwaterDepth * 0.05).toFixed(1)} m/mo`, color: '#0F172A' },
               ].map((m, i) => (
                 <div key={i} style={{ background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '10px', padding: '14px 16px' }}>
                   <p style={{ fontSize: '10.5px', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
@@ -178,8 +176,8 @@ export function RiskAssessment() {
         <div>
           <div className="card" style={{ padding: '24px', height: '100%' }}>
             <SectionHeader
-              title="Risk Escalations"
-              subtitle="Basin alerts timeline log"
+              title={t('risk_escalations', 'Risk Escalations')}
+              subtitle={t('alerts_timeline', 'Basin alerts timeline log')}
             />
             <div style={{ marginTop: '16px' }}>
               <Timeline events={alertTimelineEvents} />
@@ -191,3 +189,4 @@ export function RiskAssessment() {
     </PageContainer>
   );
 }
+

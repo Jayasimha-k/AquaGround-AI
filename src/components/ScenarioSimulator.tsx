@@ -13,6 +13,7 @@ import {
   Filler
 } from 'chart.js';
 import { calculateGSI } from '../utils/gsiCalculator';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 ChartJS.register(
   CategoryScale,
@@ -34,6 +35,7 @@ export const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({
   districtName = "Jaipur",
   initialDepthMbgl = 18.4
 }) => {
+  const { t } = useLanguage();
   const [rainfallAnomaly, setRainfallAnomaly] = useState<number>(0);
   const [extractionReduction, setExtractionReduction] = useState<number>(0);
   const [rechargeStructures, setRechargeStructures] = useState<number>(50);

@@ -5,9 +5,11 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow, format } from 'date-fns';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const OfficerProfileModal: React.FC = () => {
   const { currentUser, profileModalOpen, closeProfileModal, loginHistory, fetchAuditLogs } = useAuth();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'profile' | 'audit'>('profile');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -23,8 +25,8 @@ export const OfficerProfileModal: React.FC = () => {
     <Modal
       open={profileModalOpen}
       onClose={closeProfileModal}
-      title="Verified Officer Profile & Audit Logs"
-      subtitle="Central Ground Water Board • Official Credentials & Active Session Security History"
+      title={t('officer_profile_modal_title', 'Verified Officer Profile & Audit Logs')}
+      subtitle={t('officer_profile_modal_sub', 'Central Ground Water Board • Official Credentials & Active Session Security History')}
       size="lg"
       footer={
         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
@@ -32,7 +34,7 @@ export const OfficerProfileModal: React.FC = () => {
             <CheckCircle2 size={15} />
             <span>Authenticated & Encrypted via CGWB Portal</span>
           </div>
-          <Button variant="secondary" onClick={closeProfileModal}>Close Profile</Button>
+          <Button variant="secondary" onClick={closeProfileModal}>{t('btn_close_profile', 'Close Profile')}</Button>
         </div>
       }
     >

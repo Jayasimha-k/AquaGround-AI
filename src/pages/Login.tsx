@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight, KeyRound, UserCheck, MapPin, CheckCircle2, ArrowLeft, RefreshCw } from 'lucide-react';
 import { useAuth, DEMO_ACCOUNTS } from '@/contexts/AuthContext';
 import type { UserAccount } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const LOGIN_POSITIONS = [
   { id: 'nodal_admin', label: 'Nodal Officer / System Administrator', role: 'admin' as const },
@@ -16,6 +17,7 @@ type LoginMode = 'signin' | 'register' | 'otp_verify' | 'forgot_password' | 'res
 
 export const Login: React.FC = () => {
   const { loginAccount, registerAccount, verifyOTP, requestPasswordReset, resetPassword, quickDemoLogin } = useAuth();
+  const { t } = useLanguage();
   
   const [mode, setMode] = useState<LoginMode>('signin');
 

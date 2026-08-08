@@ -30,6 +30,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const t = (key: string, fallback?: string): string => {
     const dict = TRANSLATIONS[language] || TRANSLATIONS.en;
     if (dict[key]) return dict[key];
+    if (fallback && dict[fallback]) return dict[fallback];
     if (TRANSLATIONS.en[key]) return TRANSLATIONS.en[key];
     return fallback || key;
   };

@@ -1,7 +1,3 @@
-// =============================================================================
-// Module 4: Prediction Center (Scenario Planning Simulator)
-// =============================================================================
-
 import React, { useState } from 'react';
 import { Brain, Play, CheckCircle } from 'lucide-react';
 import { PageContainer } from '@/components/ui/PageContainer';
@@ -12,6 +8,7 @@ import { PredictionChart } from '@/components/charts';
 import { MOCK_PREDICTIONS } from '@/constants/mockData';
 import { RISK_COLORS } from '@/constants';
 import { format } from 'date-fns';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const SCENARIOS = [
   { id: 's1', title: 'Monsoon Deficit (−20%) with unchecked extraction', effect: 'Drop to 46.2m BGL', risk: 'critical', confidence: 88, color: '#EF4444', bg: '#FEF2F2' },
@@ -41,6 +38,7 @@ const PIPELINE_EVENTS = [
 ];
 
 export function Predictions() {
+  const { t } = useLanguage();
   const [selectedId, setSelectedId] = useState(MOCK_PREDICTIONS[0].id);
   const [activeScenario, setActiveScenario] = useState('s2');
 
@@ -55,14 +53,14 @@ export function Predictions() {
 
   return (
     <PageContainer
-      title="Prediction & Simulation Center"
-      subtitle="AI-assisted aquifer forecasting and scenario simulation models"
+      title={t('predictions_title', 'Prediction & Simulation Center')}
+      subtitle={t('predictions_subtitle', 'AI-assisted aquifer forecasting and scenario simulation models')}
     >
       <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr 280px', gap: '20px', minHeight: 580 }}>
 
         {/* ── Left: District Selector ───────────────────────────────────── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <SectionHeader title="Monitored Districts" subtitle="Select a district to simulate" />
+          <SectionHeader title={t('monitored_districts', 'Monitored Districts')} subtitle={t('select_district_sim', 'Select a district to simulate')} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {MOCK_PREDICTIONS.map(p => {
               const isSelected = p.id === selectedId;
@@ -107,7 +105,7 @@ export function Predictions() {
               <div>
                 <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Brain size={16} color="#3B82F6" />
-                  6-Month Water Table Projection
+                  {t('water_table_projection', '6-Month Water Table Projection')}
                 </h3>
                 <p style={{ fontSize: '12px', color: '#64748B', marginTop: '5px', fontWeight: 500 }}>
                   Simulated depth (m BGL) for {selectedPred.districtName}
@@ -118,7 +116,7 @@ export function Predictions() {
                 background: '#EFF6FF', border: '1px solid #BFDBFE',
                 padding: '4px 10px', borderRadius: '6px',
               }}>
-                Confidence: {selectedPred.confidenceScore}%
+                {t('confidence_score', 'Confidence')}: {selectedPred.confidenceScore}%
               </span>
             </div>
             <PredictionChart
@@ -133,8 +131,8 @@ export function Predictions() {
           {/* Scenario Simulator */}
           <div className="card" style={{ padding: '24px' }}>
             <SectionHeader
-              title="Scenario Planning Simulator"
-              subtitle="Select variables to model aquifer outcome indices"
+              title={t('scenario_simulator_title', 'Scenario Planning Simulator')}
+              subtitle={t('scenario_simulator_sub', 'Select variables to model aquifer outcome indices')}
             />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginTop: '16px' }}>
               {SCENARIOS.map(s => {
@@ -172,13 +170,13 @@ export function Predictions() {
             {/* Outcome indicators */}
             <div style={{ marginTop: '16px', background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '10px', padding: '16px' }}>
               <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px', margin: '0 0 14px 0' }}>
-                <Play size={11} color="#3B82F6" /> Simulated Outcome Parameters
+                <Play size={11} color="#3B82F6" /> {t('simulated_outcome', 'Simulated Outcome Parameters')}
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                 {[
-                  { label: 'Outcome Index',     value: currentScenario.effect },
-                  { label: 'Projected Risk',     value: <StatusBadge variant={currentScenario.risk as any} size="sm" /> },
-                  { label: 'Model Probability',  value: `${currentScenario.confidence}%` },
+                  { label: t('outcome_index', 'Outcome Index'),     value: currentScenario.effect },
+                  { label: t('projected_risk', 'Projected Risk'),     value: <StatusBadge variant={currentScenario.risk as any} size="sm" /> },
+                  { label: t('model_probability', 'Model Probability'),  value: `${currentScenario.confidence}%` },
                 ].map((item, i) => (
                   <div key={i}>
                     <p style={{ fontSize: '10.5px', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', margin: '0 0 5px 0' }}>
@@ -195,7 +193,7 @@ export function Predictions() {
         {/* ── Right: Pipeline Timeline ──────────────────────────────────── */}
         <div>
           <div className="card" style={{ padding: '24px', height: '100%' }}>
-            <SectionHeader title="Simulation Pipeline" subtitle="Model compilation and training logs" />
+            <SectionHeader title={t('simulation_pipeline', 'Simulation Pipeline')} subtitle={t('compiled_logs', 'Model compilation and training logs')} />
             <div style={{ marginTop: '16px' }}>
               <Timeline events={PIPELINE_EVENTS} />
             </div>
@@ -206,3 +204,4 @@ export function Predictions() {
     </PageContainer>
   );
 }
+

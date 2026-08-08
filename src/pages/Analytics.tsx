@@ -1,7 +1,3 @@
-// =============================================================================
-// Module 3: Resource Intelligence (Analytical Intelligence Workspace)
-// =============================================================================
-
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { SectionHeader } from '@/components/ui/SectionHeader';
@@ -13,30 +9,32 @@ import {
 } from '@/components/charts';
 import { MONTHLY_WATER_LEVEL_DATA, YEARLY_WATER_LEVEL_DATA, MOCK_DISTRICTS } from '@/constants/mockData';
 import { Filter, Download, HelpCircle, Activity, Droplets, ArrowUpRight, ShieldAlert } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type QuestionTab = 'depletion' | 'balance' | 'rainfall' | 'comparison';
 
 export function Analytics() {
+  const { t } = useLanguage();
   const [activeQuestion, setActiveQuestion] = useState<QuestionTab>('depletion');
 
   // Question metadata
   const questions = [
-    { id: 'depletion', label: '1. Water Table Depletion', icon: Droplets, title: 'Is the regional water table depleting over time?', sub: 'Long-term groundwater depth trends below ground level (m BGL)' },
-    { id: 'balance', label: '2. Water Balance Index', icon: Activity, title: 'Are extraction rates exceeding natural replenishment?', sub: 'Comparison of annual extraction rate vs natural aquifer recharge (MCM/yr)' },
-    { id: 'rainfall', label: '3. Rainfall Correlation', icon: HelpCircle, title: 'How does seasonal precipitation impact recovery?', sub: 'Monthly rainfall distribution and storage index response indices' },
-    { id: 'comparison', label: '4. Basin Comparison', icon: ShieldAlert, title: 'Which regional aquifer basins are changing fastest?', sub: 'Direct state and district category classification analysis' },
+    { id: 'depletion', label: t('q1_title', '1. Water Table Depletion'), icon: Droplets, title: t('q1_desc', 'Is the regional water table depleting over time?'), sub: t('q1_sub', 'Long-term groundwater depth trends below ground level (m BGL)') },
+    { id: 'balance', label: t('q2_title', '2. Water Balance Index'), icon: Activity, title: t('q2_desc', 'Are extraction rates exceeding natural replenishment?'), sub: t('q2_sub', 'Comparison of annual extraction rate vs natural aquifer recharge (MCM/yr)') },
+    { id: 'rainfall', label: t('q3_title', '3. Rainfall Correlation'), icon: HelpCircle, title: t('q3_desc', 'How does seasonal precipitation impact recovery?'), sub: t('q3_sub', 'Monthly rainfall distribution and storage index response indices') },
+    { id: 'comparison', label: t('q4_title', '4. Basin Comparison'), icon: ShieldAlert, title: t('q4_desc', 'Which regional aquifer basins are changing fastest?'), sub: t('q4_sub', 'Direct state and district category classification analysis') },
   ];
 
   const currentQ = questions.find(q => q.id === activeQuestion) || questions[0];
 
   return (
     <PageContainer
-      title="Resource Intelligence Workspace"
-      subtitle="Hydrological analytics tailored to diagnostic resource questions"
+      title={t('analytics_title', 'Resource Intelligence Workspace')}
+      subtitle={t('analytics_subtitle', 'Hydrological analytics tailored to diagnostic resource questions')}
       actions={
         <div className="flex items-center gap-2">
-          <Button variant="secondary" size="sm" icon={<Filter size={13} />}>Filter Scope</Button>
-          <Button variant="secondary" size="sm" icon={<Download size={13} />}>Export Data</Button>
+          <Button variant="secondary" size="sm" icon={<Filter size={13} />}>{t('filter_scope', 'Filter Scope')}</Button>
+          <Button variant="secondary" size="sm" icon={<Download size={13} />}>{t('export_data', 'Export Data')}</Button>
         </div>
       }
     >
@@ -81,7 +79,7 @@ export function Analytics() {
               <p style={{ fontSize: '13px', color: '#64748B', marginTop: '6px', fontWeight: 500 }}>{currentQ.sub}</p>
             </div>
             <span style={{ fontSize: '11px', fontWeight: 700, color: '#2563EB', background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '4px 12px', borderRadius: '6px', flexShrink: 0 }}>
-              Analytical Diagnostic
+              {t('analytical_diagnostic', 'Analytical Diagnostic')}
             </span>
           </div>
 
@@ -95,7 +93,7 @@ export function Analytics() {
               <div style={{ background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
                   <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px', margin: '0 0 12px 0' }}>
-                    <Droplets size={12} color="#3B82F6" /> Hydrological Timeline
+                    <Droplets size={12} color="#3B82F6" /> {t('hydro_timeline', 'Hydrological Timeline')}
                   </p>
                   <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.7, margin: 0 }}>
                     Analysis indicates a consistent downward trajectory, descending to{' '}
@@ -126,7 +124,7 @@ export function Analytics() {
                 <div className="space-y-3">
                   <p className="font-bold text-slate-700 uppercase tracking-widest text-[9px] flex items-center gap-1.5">
                     <Activity size={11} className="text-blue-600" />
-                    Balance Auditing
+                    {t('balance_auditing', 'Balance Auditing')}
                   </p>
                   <p className="text-slate-600 leading-relaxed font-medium">
                     Groundwater extraction rates in major basins average <span className="font-bold text-slate-900">9.8 MCM/yr</span>, while active recharge replenishment is capped at <span className="font-bold text-slate-900">3.2 MCM/yr</span>. 
@@ -155,7 +153,7 @@ export function Analytics() {
                 <div className="space-y-3">
                   <p className="font-bold text-slate-700 uppercase tracking-widest text-[9px] flex items-center gap-1.5">
                     <HelpCircle size={11} className="text-blue-600" />
-                    Precipitation Audits
+                    {t('precip_audits', 'Precipitation Audits')}
                   </p>
                   <p className="text-slate-600 leading-relaxed font-medium">
                     Telemetry shows peak recharge occurs between July and September, correlating with monsoon precipitation cycles. 
@@ -189,7 +187,7 @@ export function Analytics() {
                 <div className="space-y-3">
                   <p className="font-bold text-slate-700 uppercase tracking-widest text-[9px] flex items-center gap-1.5">
                     <ShieldAlert size={11} className="text-blue-600" />
-                    Basin Category Distribution
+                    {t('basin_distribution', 'Basin Category Distribution')}
                   </p>
                   <p className="text-slate-600 leading-relaxed font-medium">
                     Of the 12 monitored aquifer district coordinates, <span className="font-bold text-red-600">{MOCK_DISTRICTS.filter(d => d.riskLevel === 'critical').length}</span> districts are classified in the critical depletion zone, requiring immediate mitigation directives.
@@ -209,3 +207,4 @@ export function Analytics() {
     </PageContainer>
   );
 }
+

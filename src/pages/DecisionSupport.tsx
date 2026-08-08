@@ -126,8 +126,8 @@ export function DecisionSupport() {
 
   return (
     <PageContainer
-      title="Decision Support Workspace"
-      subtitle="Hydrological directives review panel, policy scenario simulator, and dispatch command"
+      title={t('decision_title', 'Decision Support Workspace')}
+      subtitle={t('decision_subtitle', 'Hydrological directives review panel, policy scenario simulator, and dispatch command')}
     >
       {/* ── Top: Policy Scenario Simulator ── */}
       <div style={{ marginBottom: '28px' }}>
@@ -142,8 +142,8 @@ export function DecisionSupport() {
         {/* ── Left: Directives List ─────────────────────────────────────── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <SectionHeader
-            title="Active Telemetry Directives"
-            subtitle="Directives awaiting hydrogeological validation"
+            title={t('active_directives', 'Active Telemetry Directives')}
+            subtitle={t('awaiting_validation', 'Directives awaiting hydrogeological validation')}
           />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {MOCK_RECOMMENDATIONS.map(rec => {
@@ -181,7 +181,7 @@ export function DecisionSupport() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', color: '#94A3B8', fontWeight: 600 }}>
                     <span>{formatDistanceToNow(new Date(rec.generatedAt), { addSuffix: true })}</span>
                     <span style={{ color: '#2563EB', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '3px' }}>
-                      Review <ChevronRight size={11} />
+                      {t('btn_review', 'Review')} <ChevronRight size={11} />
                     </span>
                   </div>
                 </div>
@@ -219,7 +219,7 @@ export function DecisionSupport() {
                           {isSpeaking ? t('btn_stop_listen', 'Stop Audio') : t('btn_listen', 'Listen to Explanation')}
                         </Button>
                         <span style={{ fontSize: '11px', fontWeight: 700, color: '#2563EB', background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '4px 12px', borderRadius: '6px', flexShrink: 0 }}>
-                          Confidence: {selectedRec.confidence}%
+                          {t('confidence_score', 'Confidence')}: {selectedRec.confidence}%
                         </span>
                       </div>
                     </div>
@@ -232,9 +232,9 @@ export function DecisionSupport() {
                 {/* Details */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   {[
-                    { icon: <ShieldAlert size={14} color="#94A3B8" />, label: 'Reason',               value: details.reason, mono: false },
-                    { icon: <Activity    size={14} color="#94A3B8" />, label: 'Telemetry Evidence',    value: details.evidence, mono: true },
-                    { icon: <FileText    size={14} color="#94A3B8" />, label: 'Recommended Action',    value: details.action, mono: false, highlight: true },
+                    { icon: <ShieldAlert size={14} color="#94A3B8" />, label: t('label_reason', 'Reason'),               value: details.reason, mono: false },
+                    { icon: <Activity    size={14} color="#94A3B8" />, label: t('label_evidence', 'Telemetry Evidence'),    value: details.evidence, mono: true },
+                    { icon: <FileText    size={14} color="#94A3B8" />, label: t('label_rec_action', 'Recommended Action'),    value: details.action, mono: false, highlight: true },
                   ].map((row, i) => (
                     <div key={i} style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: '16px', paddingBottom: i < 2 ? '20px' : 0, borderBottom: i < 2 ? '1px solid #F1F5F9' : 'none' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -263,8 +263,8 @@ export function DecisionSupport() {
               <div className="card" style={{ padding: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <SectionHeader
-                    title="Officer Dispatch Observations"
-                    subtitle="Hydrological logs to attach to command record"
+                    title={t('officer_observations', 'Officer Dispatch Observations')}
+                    subtitle={t('hydro_logs_attach', 'Hydrological logs to attach to command record')}
                   />
                   <Button
                     variant={isListening ? 'primary' : 'secondary'}
@@ -281,7 +281,7 @@ export function DecisionSupport() {
                 <textarea
                   value={officerNote}
                   onChange={e => setOfficerNote(e.target.value)}
-                  placeholder="Enter hydrological observations or click mic button above to speak in your regional language..."
+                  placeholder={t('placeholder_observations', 'Enter hydrological observations or click mic button above to speak in your regional language...')}
                   rows={4}
                   style={{
                     width: '100%', marginTop: '16px', background: '#F8FAFC',
@@ -296,18 +296,18 @@ export function DecisionSupport() {
               {/* Action dispatch */}
               <div className="card" style={{ padding: '24px' }}>
                 <SectionHeader
-                  title="Directive Action Dispatch"
-                  subtitle="Approve, Modify or Reject this recommended directive"
+                  title={t('directive_action_dispatch', 'Directive Action Dispatch')}
+                  subtitle={t('approve_modify_reject', 'Approve, Modify or Reject this recommended directive')}
                 />
                 <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
                   <Button variant="primary" onClick={() => setConfirmAction({ action: 'approved', label: 'Approve' })} fullWidth>
-                    Approve & Dispatch
+                    {t('btn_approve', 'Approve & Dispatch')}
                   </Button>
                   <Button variant="secondary" onClick={openModifyModal} fullWidth>
-                    Modify Directive
+                    {t('btn_modify', 'Modify Directive')}
                   </Button>
                   <Button variant="danger" onClick={() => setConfirmAction({ action: 'rejected', label: 'Reject' })} fullWidth>
-                    Reject Directive
+                    {t('btn_reject', 'Reject Directive')}
                   </Button>
                 </div>
                 {decisions[selectedRec.id] && (
@@ -321,15 +321,15 @@ export function DecisionSupport() {
             </>
           ) : (
             <div className="card" style={{ padding: '48px', textAlign: 'center', fontSize: '13.5px', color: '#94A3B8', fontWeight: 500 }}>
-              Select an active telemetry directive to review details.
+              {t('select_directive_prompt', 'Select an active telemetry directive to review details.')}
             </div>
           )}
 
           {/* Timeline */}
           <div className="card" style={{ padding: '24px' }}>
             <SectionHeader
-              title="Directive Log History"
-              subtitle="Central hydrogeologist directive dispatch timeline"
+              title={t('directive_log_history', 'Directive Log History')}
+              subtitle={t('central_dispatch_log', 'Central hydrogeologist directive dispatch timeline')}
             />
             <div style={{ marginTop: '16px' }}>
               <Timeline events={timelineEvents as any} />
@@ -343,13 +343,13 @@ export function DecisionSupport() {
       <Modal
         open={modifyModalOpen}
         onClose={() => setModifyModalOpen(false)}
-        title="Modify Hydrological Directive"
-        subtitle="Amend recommended directive boundaries and parameters prior to validation"
+        title={t('modify_modal_title', 'Modify Hydrological Directive')}
+        subtitle={t('modify_modal_sub', 'Amend recommended directive boundaries and parameters prior to validation')}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setModifyModalOpen(false)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setModifyModalOpen(false)}>{t('btn_cancel', 'Cancel')}</Button>
             <Button variant="primary" onClick={handleSaveModification}>
-              Save Modified Directive
+              {t('btn_save_modified', 'Save Modified Directive')}
             </Button>
           </>
         }
@@ -357,7 +357,7 @@ export function DecisionSupport() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
-              Amended Recommended Action
+              {t('amended_action_label', 'Amended Recommended Action')}
             </label>
             <textarea
               value={modifiedActionText}
@@ -368,7 +368,7 @@ export function DecisionSupport() {
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
-              Amendment Reason Logs
+              {t('amendment_reason_label', 'Amendment Reason Logs')}
             </label>
             <input
               type="text"

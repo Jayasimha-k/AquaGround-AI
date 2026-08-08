@@ -10,6 +10,7 @@ import {
 import { PageContainer } from '@/components/ui/PageContainer';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Button } from '@/components/ui/Button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type Section = 'general' | 'map' | 'notifications' | 'layers' | 'profile' | 'security';
 
@@ -51,8 +52,8 @@ function Toggle({ label, description, checked, onChange }: {
     </div>
   );
 }
-
 export function Settings() {
+  const { t } = useLanguage();
   const [activeSection, setActiveSection] = useState<Section>('general');
   const [saved, setSaved] = useState(false);
   const [settings, setSettings] = useState({
@@ -80,8 +81,8 @@ export function Settings() {
 
   return (
     <PageContainer
-      title="System Preferences & Configuration"
-      subtitle="Manage map settings, dispatch alert notifications, layer preferences, and credentials"
+      title={t('settings_title', 'System Preferences & Configuration')}
+      subtitle={t('settings_subtitle', 'Manage map settings, dispatch alert notifications, layer preferences, and credentials')}
     >
       <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px', alignItems: 'start' }}>
 
@@ -120,7 +121,7 @@ export function Settings() {
 
           {activeSection === 'general' && (
             <div className="card" style={{ padding: '28px', background: '#FFFFFF' }}>
-              <SectionHeader title="General Preferences" subtitle="Telemetry refresh intervals and display density" />
+              <SectionHeader title={t('general_prefs', 'General Preferences')} subtitle="Telemetry refresh intervals and display density" />
               <div style={{ marginTop: '16px' }}>
                 <Toggle label="Compact View Mode" description="Reduce margins to fit more telemetry data on smaller screens" checked={settings.compactMode} onChange={set('compactMode')} />
                 <Toggle label="Telemetry Auto-Fetch" description="Poll DWLR sensor records periodically in the background" checked={settings.autoRefresh} onChange={set('autoRefresh')} />
