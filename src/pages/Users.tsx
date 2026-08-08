@@ -98,7 +98,7 @@ const INITIAL_OFFICIAL_USERS: OfficialUserAccount[] = [
 ];
 
 export function Users() {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, openProfileModal } = useAuth();
   const [usersList, setUsersList] = useState<OfficialUserAccount[]>(INITIAL_OFFICIAL_USERS);
   const [search, setSearch] = useState('');
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -157,6 +157,14 @@ export function Users() {
           <Button
             variant="secondary"
             size="sm"
+            icon={<UserCheck size={14} />}
+            onClick={() => openProfileModal()}
+          >
+            Officer Profile & Audit Logs
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             icon={<LogOut size={14} />}
             onClick={() => logout()}
           >
@@ -208,7 +216,7 @@ export function Users() {
                     display: 'flex', alignItems: 'center', gap: '4px'
                   }}>
                     <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981' }} />
-                    Active Session
+                    Active Session • Verified Officer
                   </span>
                 </div>
                 <p style={{ fontSize: '12.5px', color: '#64748B', margin: '4px 0 0 0', fontWeight: 500 }}>
@@ -217,21 +225,35 @@ export function Users() {
               </div>
             </div>
 
-            <button
-              onClick={() => logout()}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                fontSize: '12.5px', fontWeight: 700, color: '#DC2626',
-                background: '#FEF2F2', border: '1px solid #FECACA',
-                padding: '8px 16px', borderRadius: '8px', cursor: 'pointer',
-                transition: 'all 0.15s'
-              }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#FEE2E2')}
-              onMouseLeave={e => (e.currentTarget.style.background = '#FEF2F2')}
-            >
-              <LogOut size={14} />
-              <span>Log Out Interface</span>
-            </button>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => openProfileModal()}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  fontSize: '12.5px', fontWeight: 700, color: '#2563EB',
+                  background: '#EFF6FF', border: '1px solid #BFDBFE',
+                  padding: '8px 16px', borderRadius: '8px', cursor: 'pointer',
+                  transition: 'all 0.15s'
+                }}
+              >
+                <UserCheck size={14} />
+                <span>View Profile & Audit Logs</span>
+              </button>
+
+              <button
+                onClick={() => logout()}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  fontSize: '12.5px', fontWeight: 700, color: '#DC2626',
+                  background: '#FEF2F2', border: '1px solid #FECACA',
+                  padding: '8px 16px', borderRadius: '8px', cursor: 'pointer',
+                  transition: 'all 0.15s'
+                }}
+              >
+                <LogOut size={14} />
+                <span>Log Out</span>
+              </button>
+            </div>
           </div>
         )}
 

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { MOCK_REPORTS, MOCK_DISTRICTS } from '@/constants/mockData';
 import { generateCGWBReportPDF } from '@/services/pdfReportService';
 import type { Report } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 const TYPE_LABELS: Record<string, string> = {
   monthly:   'Monthly Survey',
@@ -25,6 +26,7 @@ const TYPE_STYLE: Record<string, { color: string; bg: string; border: string }> 
 };
 
 export function Reports() {
+  const { dispatchDirectiveAlert } = useAuth();
   const [selected, setSelected] = useState<Report>(MOCK_REPORTS[0]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -50,6 +52,12 @@ export function Reports() {
         `Enforce real-time telemetry extraction capping for commercial industrial consumers.`
       ]
     });
+
+    dispatchDirectiveAlert(
+      `CGWB Official Survey Report Published (${districtObj.name})`,
+      `Official Hydrological Survey & Telemetry Audit Report generated for ${districtObj.name}, ${districtObj.state}. Groundwater table recorded at ${depth}m BGL.`,
+      districtObj.name
+    );
   };
 
 

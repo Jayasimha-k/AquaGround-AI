@@ -3,7 +3,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes.ai import router as ai_router
 from routes.telemetry import router as telemetry_router
+from routes.auth import router as auth_router
 from config.settings import settings
+from config.database import engine, Base
+
+# Create database tables automatically
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=settings.app_name,
@@ -23,6 +28,7 @@ app.add_middleware(
 # Include routes
 app.include_router(ai_router)
 app.include_router(telemetry_router)
+app.include_router(auth_router)
 
 
 @app.get("/")
@@ -35,3 +41,4 @@ async def root():
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+

@@ -1,7 +1,12 @@
 fastapi
 uvicorn[standard]
 pydantic>=2.9.0
+email-validator
 pydantic-settings
 python-dotenv
 google-generativeai
 httpx
+sqlalchemy
+pyjwt
+passlib[bcrypt]
+bcrypt==4.0.1

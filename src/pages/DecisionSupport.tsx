@@ -1,7 +1,3 @@
-// =============================================================================
-// Decision Support Page — Hydrological Intervention Review
-// =============================================================================
-
 import React, { useState } from 'react';
 import { Brain, AlertCircle, ChevronRight, FileText, Activity, ShieldAlert, Sliders } from 'lucide-react';
 import { PageContainer } from '@/components/ui/PageContainer';
@@ -14,6 +10,7 @@ import { ScenarioSimulator } from '@/components/ScenarioSimulator';
 import { MOCK_RECOMMENDATIONS, MOCK_DECISIONS, MOCK_DISTRICTS } from '@/constants/mockData';
 import type { AIRecommendation, DecisionStatus } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
 
 const PRIORITY_STYLE: Record<string, { dot: string; label: string; badge: any }> = {
   urgent: { dot: '#EF4444', label: 'Urgent Action',    badge: 'critical' },
@@ -51,16 +48,66 @@ const MAPPED_DETAILS: Record<string, { reason: string; evidence: string; action:
 };
 
 export function DecisionSupport() {
+  const { currentUser, dispatchDirectiveAlert } = useAuth();
   const [selectedRec, setSelectedRec] = useState<AIRecommendation | null>(MOCK_RECOMMENDATIONS[0]);
   const [officerNote, setOfficerNote] = useState('');
   const [modifyModalOpen, setModifyModalOpen] = useState(false);
+  const [modifiedActionText, setModifiedActionText] = useState('');
+  const [modifyReasonText, setModifyReasonText] = useState('');
   const [confirmAction, setConfirmAction] = useState<{ action: DecisionStatus; label: string } | null>(null);
   const [decisions, setDecisions] = useState<Record<string, DecisionStatus>>({});
+  const [timelineEvents, setTimelineEvents] = useState(decisionTimeline);
 
-  const handleDecision = (action: DecisionStatus) => {
+  const handleDecision = (action: DecisionStatus, noteOverride?: string) => {
     if (!selectedRec) return;
+
     setDecisions(prev => ({ ...prev, [selectedRec.id]: action }));
+
+    const noteToRecord = noteOverride || officerNote || (
+      action === 'approved'
+        ? 'Directive approved and dispatched to regional hydrogeology team.'
+        : action === 'rejected'
+        ? 'Directive rejected after officer technical review.'
+        : 'Directive modified and updated parameters saved.'
+    );
+
+    const actorName = currentUser ? `${currentUser.name} (${currentUser.roleTitle})` : 'Dr. Officer (Current User)';
+
+    const newTimelineEvent = {
+      id: `dec-${Date.now()}`,
+      title: `${selectedRec.districtName} Directive`,
+      subtitle: actorName,
+      description: noteToRecord,
+      timestamp: new Date().toISOString(),
+      status: action,
+      actor: actorName,
+    };
+
+    setTimelineEvents(prev => [newTimelineEvent, ...prev]);
     setConfirmAction(null);
+
+    // Trigger Multi-Officer In-App Notification Bell & Automated SMTP Email Dispatch Alert
+    dispatchDirectiveAlert(
+      `${selectedRec.districtName} Hydrological Directive [${action.toUpperCase()}]`,
+      noteToRecord,
+      selectedRec.districtName
+    );
+  };
+
+  const openModifyModal = () => {
+    if (selectedRec) {
+      setModifiedActionText(selectedRec.details);
+      setModifyReasonText('');
+    }
+    setModifyModalOpen(true);
+  };
+
+  const handleSaveModification = () => {
+    const combinedNote = modifyReasonText
+      ? `Modified Action: "${modifiedActionText}". Reason: ${modifyReasonText}`
+      : `Modified Action: "${modifiedActionText}".`;
+    handleDecision('modified', combinedNote);
+    setModifyModalOpen(false);
   };
 
   const details = selectedRec ? (MAPPED_DETAILS[selectedRec.id] ?? {
@@ -98,7 +145,10 @@ export function DecisionSupport() {
               return (
                 <div
                   key={rec.id}
-                  onClick={() => setSelectedRec(rec)}
+                  onClick={() => {
+                    setSelectedRec(rec);
+                    setOfficerNote('');
+                  }}
                   style={{
                     cursor: 'pointer', borderRadius: '12px', padding: '18px 20px',
                     background: isSelected ? '#F0F7FF' : '#FFFFFF',
@@ -219,7 +269,7 @@ export function DecisionSupport() {
                   <Button variant="primary" onClick={() => setConfirmAction({ action: 'approved', label: 'Approve' })} fullWidth>
                     Approve & Dispatch
                   </Button>
-                  <Button variant="secondary" onClick={() => setModifyModalOpen(true)} fullWidth>
+                  <Button variant="secondary" onClick={openModifyModal} fullWidth>
                     Modify Directive
                   </Button>
                   <Button variant="danger" onClick={() => setConfirmAction({ action: 'rejected', label: 'Reject' })} fullWidth>
@@ -248,7 +298,7 @@ export function DecisionSupport() {
               subtitle="Central hydrogeologist directive dispatch timeline"
             />
             <div style={{ marginTop: '16px' }}>
-              <Timeline events={decisionTimeline as any} />
+              <Timeline events={timelineEvents as any} />
             </div>
           </div>
         </div>
@@ -264,7 +314,7 @@ export function DecisionSupport() {
         footer={
           <>
             <Button variant="secondary" onClick={() => setModifyModalOpen(false)}>Cancel</Button>
-            <Button variant="primary" onClick={() => { handleDecision('modified'); setModifyModalOpen(false); }}>
+            <Button variant="primary" onClick={handleSaveModification}>
               Save Modified Directive
             </Button>
           </>
@@ -276,7 +326,8 @@ export function DecisionSupport() {
               Amended Recommended Action
             </label>
             <textarea
-              defaultValue={selectedRec?.details}
+              value={modifiedActionText}
+              onChange={e => setModifiedActionText(e.target.value)}
               rows={3}
               style={{ width: '100%', background: '#F8FAFC', border: '1px solid #E8EDF3', borderRadius: '10px', padding: '12px 16px', fontSize: '13px', color: '#334155', resize: 'none', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
             />
@@ -287,6 +338,8 @@ export function DecisionSupport() {
             </label>
             <input
               type="text"
+              value={modifyReasonText}
+              onChange={e => setModifyReasonText(e.target.value)}
               placeholder="Observation reason for modification..."
               style={{ width: '100%', background: '#F8FAFC', border: '1px solid #E8EDF3', borderRadius: '10px', padding: '12px 16px', fontSize: '13px', color: '#334155', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
             />
