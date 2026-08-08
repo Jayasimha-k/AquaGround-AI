@@ -10,6 +10,13 @@ if not exist venv (
     python -m venv venv
 )
 
+if not exist .env (
+    if exist .env.example (
+        echo Copying .env.example to .env...
+        copy .env.example .env >nul
+    )
+)
+
 echo [2/3] Activating virtual environment and verifying dependencies...
 call venv\Scripts\activate
 pip install -r requirements.txt --quiet
