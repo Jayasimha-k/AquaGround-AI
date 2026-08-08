@@ -1,6 +1,6 @@
 import random
 import datetime
-from fastapi import APIRouter, Depends, HTTPException, Request, Header
+from fastapi import APIRouter, Depends, HTTPException, Request, Header, BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
@@ -73,7 +73,7 @@ def extract_client_info(request: Request, user_agent_header: Optional[str]):
 # ── API Endpoints ─────────────────────────────────────────────────────────────
 
 @router.post("/register")
-def register_officer(req: RegisterRequest, db: Session = Depends(get_db)):
+def register_officer(req: RegisterRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.email == req.email.lower()).first()
     if existing and existing.is_verified:
         raise HTTPException(status_code=400, detail="An officer account with this email already exists.")
@@ -112,19 +112,12 @@ def register_officer(req: RegisterRequest, db: Session = Depends(get_db)):
     db.add(otp_entry)
     db.commit()
 
-    # Dispatch REAL email to user's inbox
-    email_sent = send_otp_email(req.email.lower(), req.name, otp_str, "verification")
-    has_smtp = bool(settings.smtp_user and settings.smtp_password)
-
-    msg = f"Real OTP verification email dispatched to {req.email.lower()}." if has_smtp else f"Demo Mode: Your OTP verification code is [{otp_str}] (Configure SMTP in .env for real email inbox delivery)."
+    # Dispatch REAL email asynchronously in background task (Instant response <50ms)
+    background_tasks.add_task(send_otp_email, req.email.lower(), req.name, otp_str, "verification")
 
     return {
         "status": "success",
-        "message": msg,
-        "email_sent": email_sent,
-        "is_smtp_configured": has_smtp,
-        "otp_code": otp_str,
-        "otp_debug": otp_str,
+        "message": f"A 6-digit OTP verification code has been dispatched to {req.email.lower()}.",
         "email": req.email.lower()
     }
 
@@ -231,7 +224,7 @@ def login_officer(req: LoginRequest, request: Request, db: Session = Depends(get
 
 
 @router.post("/forgot-password")
-def forgot_password(req: ForgotPasswordRequest, db: Session = Depends(get_db)):
+def forgot_password(req: ForgotPasswordRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == req.email.lower()).first()
     if not user:
         return {"status": "success", "message": f"If an account exists for {req.email}, reset OTP has been sent."}
@@ -247,16 +240,11 @@ def forgot_password(req: ForgotPasswordRequest, db: Session = Depends(get_db)):
     db.add(otp)
     db.commit()
 
-    email_sent = send_otp_email(user.email, user.name, otp_str, "reset")
-    has_smtp = bool(settings.smtp_user and settings.smtp_password)
+    background_tasks.add_task(send_otp_email, user.email, user.name, otp_str, "reset")
 
     return {
         "status": "success",
-        "message": f"Password reset OTP code generated for {user.email}.",
-        "email_sent": email_sent,
-        "is_smtp_configured": has_smtp,
-        "otp_code": otp_str,
-        "otp_debug": otp_str
+        "message": f"Password reset OTP code dispatched to {user.email}."
     }
 
 
@@ -321,7 +309,7 @@ def get_login_history(email: str, db: Session = Depends(get_db)):
 
 
 @router.post("/dispatch-alert")
-def dispatch_alert(req: DispatchAlertRequest, db: Session = Depends(get_db)):
+def dispatch_alert(req: DispatchAlertRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     all_users = db.query(User).all()
     recipient_emails = set([u.email for u in all_users if u.email])
 
@@ -342,7 +330,8 @@ def dispatch_alert(req: DispatchAlertRequest, db: Session = Depends(get_db)):
         db.add(notif)
     db.commit()
 
-    send_multi_officer_dispatch_email(
+    background_tasks.add_task(
+        send_multi_officer_dispatch_email,
         officer_emails=email_list,
         sender_name=req.sender_name,
         title=req.title,
@@ -357,13 +346,12 @@ def dispatch_alert(req: DispatchAlertRequest, db: Session = Depends(get_db)):
     }
 
 @router.post("/test-email")
-def test_email(req: TestEmailRequest):
+def test_email(req: TestEmailRequest, background_tasks: BackgroundTasks):
     test_otp = generate_otp_code()
-    success = send_otp_email(req.email.lower(), "CGWB Test Officer", test_otp, "verification")
+    background_tasks.add_task(send_otp_email, req.email.lower(), "CGWB Test Officer", test_otp, "verification")
     return {
-        "status": "success" if success else "error",
-        "message": f"Test email dispatched to {req.email.lower()}.",
-        "to_email": req.email.lower(),
-        "otp_code": test_otp
+        "status": "success",
+        "message": f"Test email dispatched to {req.email.lower()}. Please check your Inbox and Spam folder.",
+        "to_email": req.email.lower()
     }
 
