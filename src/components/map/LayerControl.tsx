@@ -1,23 +1,21 @@
-// =============================================================================
-// LayerControl — Map layer toggle panel
-// =============================================================================
-
 import React, { useState } from 'react';
 import { Layers, ChevronDown, ChevronUp } from 'lucide-react';
 import { MAP_LAYERS } from '@/constants';
 import { useApp } from '@/contexts/AppContext';
 import type { LayerId } from '@/types';
-
-const GROUP_LABELS: Record<string, string> = {
-  data: 'Data Overlays',
-  boundary: 'Boundaries',
-  infrastructure: 'Infrastructure',
-  base: 'Basemaps',
-};
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function LayerControl() {
   const { state, toggleLayer } = useApp();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
+
+  const groupLabels: Record<string, string> = {
+    data: t('group_data', 'Data Overlays'),
+    boundary: t('group_boundary', 'Boundaries'),
+    infrastructure: t('group_infra', 'Infrastructure'),
+    base: t('group_base', 'Basemaps'),
+  };
 
   const grouped = MAP_LAYERS.reduce<Record<string, typeof MAP_LAYERS>>((acc, layer) => {
     if (!acc[layer.group]) acc[layer.group] = [];
@@ -40,7 +38,7 @@ export function LayerControl() {
         }}
       >
         <Layers size={13} color="#2563EB" />
-        <span>Layers</span>
+        <span>{t('label_layers', 'Layers')}</span>
         <span style={{
           background: '#EFF6FF', color: '#1D4ED8', fontSize: '10px',
           fontWeight: 800, padding: '2px 6px', borderRadius: '99px',
@@ -63,7 +61,7 @@ export function LayerControl() {
             <div key={group} style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '6px', marginBottom: '6px' }}>
               <div style={{ padding: '6px 14px 4px' }}>
                 <p style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
-                  {GROUP_LABELS[group]}
+                  {groupLabels[group] || group}
                 </p>
               </div>
               {layers.map(layer => {

@@ -1,7 +1,3 @@
-// =============================================================================
-// Module 2: Operations Map (Interactive GIS Workspace)
-// =============================================================================
-
 import React, { useState, useMemo } from 'react';
 import { NationalMap } from '@/components/map/NationalMap';
 import { LayerControl, MapToolbar } from '@/components/map/LayerControl';
@@ -13,12 +9,14 @@ import {
   Droplets, Activity, AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Indian States represented in MOCK_DISTRICTS
 const MONITORED_STATES = Array.from(new Set(MOCK_DISTRICTS.map(d => d.state))).sort();
 
 export function MapPage() {
   const { state: appState, selectDistrict } = useApp();
+  const { t } = useLanguage();
 
   // Centralized GIS Filter State
   const [selectedState, setSelectedState] = useState<string>('all');
@@ -146,6 +144,13 @@ export function MapPage() {
     };
   }, [selectedState, selectedDistrictId, selectedRisks, searchQuery]);
 
+  const riskLabelMap: Record<string, string> = {
+    critical: t('risk_critical', 'CRITICAL'),
+    high:     t('risk_high', 'HIGH'),
+    moderate: t('risk_moderate', 'MODERATE'),
+    stable:   t('risk_stable', 'STABLE'),
+  };
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', background: '#EEF2F7', display: 'flex', flexDirection: 'column' }}>
 
@@ -163,7 +168,7 @@ export function MapPage() {
             type="text"
             value={searchQuery}
             onChange={handleSearchChange}
-            placeholder="Search state, district..."
+            placeholder={t('search_state_district_ph', 'Search state, district...')}
             style={{
               width: '100%', background: '#F8FAFC', border: '1px solid #E2E8F0',
               borderRadius: '8px', paddingLeft: '32px', paddingRight: '10px',
@@ -207,7 +212,7 @@ export function MapPage() {
             outline: 'none', cursor: 'pointer', fontFamily: 'inherit', minWidth: '130px',
           }}
         >
-          <option value="all">All States</option>
+          <option value="all">{t('all_states', 'All States')}</option>
           {MONITORED_STATES.map(s => (
             <option key={s} value={s}>{s}</option>
           ))}
@@ -225,7 +230,7 @@ export function MapPage() {
             opacity: selectedState === 'all' ? 0.5 : 1, fontFamily: 'inherit', minWidth: '130px',
           }}
         >
-          <option value="all">All Districts</option>
+          <option value="all">{t('all_districts', 'All Districts')}</option>
           {availableDistricts.map(d => (
             <option key={d.id} value={d.id}>{d.name}</option>
           ))}
@@ -259,7 +264,7 @@ export function MapPage() {
                   boxShadow: isSelected ? `0 2px 6px ${c.activeBg}40` : 'none',
                 }}
               >
-                {risk}
+                {riskLabelMap[risk] || risk}
               </button>
             );
           })}
@@ -273,7 +278,7 @@ export function MapPage() {
           icon={<RefreshCcw size={11} />}
           style={{ fontSize: '11px', padding: '4px 10px' }}
         >
-          Reset
+          {t('reset_filters', 'Reset')}
         </Button>
       </div>
 
@@ -299,7 +304,7 @@ export function MapPage() {
                 color: activeBasemap === mapType ? '#FFFFFF' : '#64748B',
               }}
             >
-              {mapType}
+              {t(`basemap_${mapType}`, mapType.toUpperCase())}
             </button>
           ))}
         </div>
@@ -308,7 +313,7 @@ export function MapPage() {
         <LayerControl />
       </div>
 
-      {/* ── LEFT SIDE FLOATING DIAGNOSTICS CARD (Stacked below filter bar) ── */}
+      {/* ── LEFT SIDE FLOATING DIAGNOSTICS CARD ── */}
       <div style={{
         position: 'absolute', top: '76px', left: '60px', zIndex: 1000,
         width: '230px', background: '#FFFFFF', border: '1px solid #E8EDF3',
@@ -316,14 +321,14 @@ export function MapPage() {
         pointerEvents: 'auto',
       }}>
         <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 12px 0' }}>
-          Triage Scope Diagnostics
+          {t('triage_scope_diag', 'Triage Scope Diagnostics')}
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {[
-            { label: 'Scope Basins',   value: filteredMetrics.totalBasins, icon: Grid,           color: '#3B82F6' },
-            { label: 'Average Depth',  value: `${filteredMetrics.avgDepth}m`, icon: Droplets,       color: '#0284C7' },
-            { label: 'Deficit Ratio',  value: `${filteredMetrics.avgDeficit} MCM`, icon: AlertTriangle, color: '#EF4444' },
-            { label: 'Active Sensors', value: filteredMetrics.activeSensors, icon: Activity,        color: '#10B981' },
+            { label: t('scope_basins', 'Scope Basins'),   value: filteredMetrics.totalBasins, icon: Grid,           color: '#3B82F6' },
+            { label: t('avg_depth', 'Average Depth'),  value: `${filteredMetrics.avgDepth}m`, icon: Droplets,       color: '#0284C7' },
+            { label: t('deficit_ratio', 'Deficit Ratio'),  value: `${filteredMetrics.avgDeficit} MCM`, icon: AlertTriangle, color: '#EF4444' },
+            { label: t('active_sensors', 'Active Sensors'), value: filteredMetrics.activeSensors, icon: Activity,        color: '#10B981' },
           ].map((item, idx) => (
             <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', paddingBottom: '8px', borderBottom: idx < 3 ? '1px solid #F1F5F9' : 'none' }}>
               <span style={{ color: '#64748B', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -344,7 +349,7 @@ export function MapPage() {
           padding: '14px', boxShadow: '0 4px 16px rgba(15,23,42,0.08)', width: '180px',
         }}>
           <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Layers size={12} color="#2563EB" /> Heatmap Metric
+            <Layers size={12} color="#2563EB" /> {t('heatmap_metric', 'Heatmap Metric')}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {(['risk', 'depth', 'extraction', 'rainfall'] as const).map(param => (
@@ -359,7 +364,7 @@ export function MapPage() {
                   color: heatmapParameter === param ? '#1D4ED8' : '#475569',
                 }}
               >
-                {param === 'depth' ? 'Water Level' : param}
+                {param === 'depth' ? t('water_level', 'Water Level') : t(param, param)}
               </button>
             ))}
           </div>
@@ -390,7 +395,7 @@ export function MapPage() {
         pointerEvents: 'none',
       }}>
         <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px 0' }}>
-          {appState.activeLayers.includes('rainfall') ? 'Rainfall Scale (mm)' : 'Aquifer Risk Index'}
+          {appState.activeLayers.includes('rainfall') ? t('rainfall_scale', 'Rainfall Scale (mm)') : t('aquifer_risk_index', 'Aquifer Risk Index')}
         </p>
         {appState.activeLayers.includes('rainfall') ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11.5px', color: '#475569', fontWeight: 500 }}>
@@ -400,10 +405,10 @@ export function MapPage() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11.5px', color: '#475569', fontWeight: 500 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444' }} /><span>Critical Moratorium</span></div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#F97316' }} /><span>High Deficit Risk</span></div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3B82F6' }} /><span>Moderate Stress</span></div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981' }} /><span>Stable Recharge</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444' }} /><span>{t('risk_critical_moratorium', 'Critical Moratorium')}</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#F97316' }} /><span>{t('risk_high_deficit', 'High Deficit Risk')}</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3B82F6' }} /><span>{t('risk_moderate_stress', 'Moderate Stress')}</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981' }} /><span>{t('risk_stable_recharge', 'Stable Recharge')}</span></div>
           </div>
         )}
       </div>
@@ -415,3 +420,4 @@ export function MapPage() {
     </div>
   );
 }
+

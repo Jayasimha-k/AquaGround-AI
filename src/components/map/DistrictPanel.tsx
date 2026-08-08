@@ -1,7 +1,3 @@
-// =============================================================================
-// DistrictPanel — Floating right inspector panel when a district is selected
-// =============================================================================
-
 import React from 'react';
 import {
   X, MapPin, Activity, TrendingDown, TrendingUp,
@@ -13,9 +9,11 @@ import { WaterLevelChart } from '@/components/charts';
 import { RISK_COLORS } from '@/constants';
 import { MOCK_ALERTS } from '@/constants/mockData';
 import { formatDistanceToNow } from 'date-fns';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function DistrictPanel() {
   const { state, selectDistrict } = useApp();
+  const { t } = useLanguage();
   const district = state.selectedDistrict;
 
   if (!district) return null;
@@ -80,7 +78,7 @@ export function DistrictPanel() {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase' }}>Health Status</span>
+              <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase' }}>{t('health_status', 'Health Status')}</span>
               <StatusBadge variant={district.riskLevel} size="sm" />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -99,13 +97,13 @@ export function DistrictPanel() {
         {/* Telemetry Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
           <div style={{ background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '10px', padding: '12px 14px' }}>
-            <p style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', margin: 0 }}>Active DWLR</p>
+            <p style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', margin: 0 }}>{t('dash_kpi_sensors', 'Active DWLR')}</p>
             <p style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginTop: '4px', margin: 0 }}>
               {district.activeSensors} <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 500 }}>/ {district.totalSensors}</span>
             </p>
           </div>
           <div style={{ background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '10px', padding: '12px 14px' }}>
-            <p style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', margin: 0 }}>Offline Nodes</p>
+            <p style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', margin: 0 }}>{t('offline_nodes', 'Offline Nodes')}</p>
             <p style={{ fontSize: '15px', fontWeight: 800, color: district.offlineSensors > 0 ? '#EF4444' : '#10B981', marginTop: '4px', margin: 0 }}>
               {district.offlineSensors}
             </p>
@@ -115,12 +113,12 @@ export function DistrictPanel() {
         {/* Water Balance */}
         <div style={{ background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: '10px', padding: '14px' }}>
           <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px 0' }}>
-            Water Balance (MCM/yr)
+            {t('water_balance', 'Water Balance (MCM/yr)')}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
-                <span style={{ color: '#64748B', fontWeight: 500 }}>Recharge</span>
+                <span style={{ color: '#64748B', fontWeight: 500 }}>{t('recharge', 'Recharge')}</span>
                 <span style={{ fontWeight: 700, color: '#10B981' }}>{district.rechargeRate} MCM</span>
               </div>
               <div style={{ height: '5px', background: '#E2E8F0', borderRadius: '99px', overflow: 'hidden' }}>
@@ -129,7 +127,7 @@ export function DistrictPanel() {
             </div>
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
-                <span style={{ color: '#64748B', fontWeight: 500 }}>Extraction</span>
+                <span style={{ color: '#64748B', fontWeight: 500 }}>{t('extraction', 'Extraction')}</span>
                 <span style={{ fontWeight: 700, color: '#EF4444' }}>{district.extractionRate} MCM</span>
               </div>
               <div style={{ height: '5px', background: '#E2E8F0', borderRadius: '99px', overflow: 'hidden' }}>
@@ -142,7 +140,7 @@ export function DistrictPanel() {
         {/* 30-Day Trend Chart */}
         <div>
           <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px 0' }}>
-            Groundwater Trend (30-day)
+            {t('gw_trend_30d', 'Groundwater Trend (30-day)')}
           </p>
           <div style={{ background: '#FFFFFF', border: '1px solid #EEF2F7', borderRadius: '10px', padding: '10px' }}>
             <WaterLevelChart
@@ -157,7 +155,7 @@ export function DistrictPanel() {
         {districtAlerts.length > 0 && (
           <div>
             <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <AlertTriangle size={12} color="#EF4444" /> Active Anomalies ({districtAlerts.length})
+              <AlertTriangle size={12} color="#EF4444" /> {t('active_anomalies', 'Active Anomalies')} ({districtAlerts.length})
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {districtAlerts.map(alert => (
@@ -174,7 +172,7 @@ export function DistrictPanel() {
         <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Brain size={16} color="#2563EB" style={{ flexShrink: 0 }} />
           <p style={{ fontSize: '11.5px', color: '#1D4ED8', lineHeight: 1.5, margin: 0, fontWeight: 500 }}>
-            Automated recommendations for this region are managed in the <strong>Decision Support</strong> workspace.
+            {t('decision_support_hint', 'Automated recommendations for this region are managed in the Decision Support workspace.')}
           </p>
         </div>
 
@@ -182,3 +180,4 @@ export function DistrictPanel() {
     </div>
   );
 }
+
