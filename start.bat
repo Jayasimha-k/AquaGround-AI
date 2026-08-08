@@ -4,10 +4,9 @@ echo ===========================================================================
 echo               AquaGround AI — National Command Center Launcher
 echo =============================================================================
 echo.
-echo [1/2] Starting Python FastAPI Backend Server (Port 8000)...
-start "AquaGround AI Backend Service" cmd /k "start_backend.bat"
+echo [1/2] Launching Python FastAPI Backend Server on Port 8000...
+start "AquaGround AI Backend Service" cmd /k "%~dp0start_backend.bat"
 
-echo [2/2] Starting Frontend Viewport (Port 5173)...
-npm run dev -- --open
-
-
+echo [2/2] Launching React Dashboard Viewport on Port 5173...
+echo.
+call npm run dev -- --open
