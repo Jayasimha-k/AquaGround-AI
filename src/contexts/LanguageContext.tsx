@@ -29,9 +29,39 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const t = (key: string, fallback?: string): string => {
     const dict = TRANSLATIONS[language] || TRANSLATIONS.en;
+
+    // 1. Direct key match
     if (dict[key]) return dict[key];
+
+    // 2. Direct fallback key match
     if (fallback && dict[fallback]) return dict[fallback];
+
+    // 3. Normalized key match
+    const kNorm = key.trim().toLowerCase();
+    for (const [dictKey, dictVal] of Object.entries(dict)) {
+      if (dictKey.toLowerCase() === kNorm) return dictVal;
+    }
+
+    if (fallback) {
+      const fNorm = fallback.trim().toLowerCase();
+      for (const [dictKey, dictVal] of Object.entries(dict)) {
+        if (dictKey.toLowerCase() === fNorm) return dictVal;
+      }
+    }
+
+    // 4. English string reverse lookup (matches English string literals to current language keys)
+    if (language !== 'en' && TRANSLATIONS.en) {
+      const targetStr = (fallback || key).trim().toLowerCase();
+      for (const [engKey, engVal] of Object.entries(TRANSLATIONS.en)) {
+        if (engVal.trim().toLowerCase() === targetStr && dict[engKey]) {
+          return dict[engKey];
+        }
+      }
+    }
+
+    // 5. English dictionary fallback
     if (TRANSLATIONS.en[key]) return TRANSLATIONS.en[key];
+
     return fallback || key;
   };
 

@@ -72,7 +72,7 @@ export function TopBar() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 500, color: '#64748B', userSelect: 'none' }}>
           <span style={{ color: '#2563EB', fontWeight: 700, fontSize: '13.5px' }}>CGWB</span>
           <span style={{ color: '#CBD5E1', fontSize: '16px', fontWeight: 300 }}>/</span>
-          <span style={{ color: '#334155', fontWeight: 600 }}>National Command Center</span>
+          <span style={{ color: '#334155', fontWeight: 600 }}>{t('app_title', 'National Command Center')}</span>
         </div>
 
         <div style={{ flex: 1 }} />
