@@ -8,6 +8,7 @@ import type { NavItem, MapLayer } from '@/types';
 export const ROUTES = {
   DASHBOARD: '/',
   MAP: '/map',
+  WATER_SOURCES: '/water-sources',
   ANALYTICS: '/analytics',
   PREDICTIONS: '/predictions',
   RISK: '/risk',
@@ -21,6 +22,7 @@ export const ROUTES = {
 export const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', path: ROUTES.DASHBOARD, icon: 'LayoutDashboard' },
   { id: 'map', label: 'India Map', path: ROUTES.MAP, icon: 'Map' },
+  { id: 'water-sources', label: 'Water Resources Advisory', path: ROUTES.WATER_SOURCES, icon: 'Waves' },
   { id: 'analytics', label: 'Analytics', path: ROUTES.ANALYTICS, icon: 'BarChart3' },
   { id: 'predictions', label: 'Predictions', path: ROUTES.PREDICTIONS, icon: 'TrendingUp' },
   { id: 'risk', label: 'Risk Assessment', path: ROUTES.RISK, icon: 'AlertTriangle' },

@@ -25,6 +25,7 @@ export const TRANSLATIONS: Record<LanguageCode, Record<string, string>> = {
     cgwb_tagline: 'Central Ground Water Board • Ministry of Jal Shakti',
     nav_dashboard: 'National Dashboard',
     nav_map: 'Spatial Map Analytics',
+    nav_water_sources: 'Water Resources Advisory',
     nav_analytics: 'DWLR Telemetry & Trends',
     nav_risk: 'Aquifer Risk Index',
     nav_predictions: 'ML Time-Series Forecasting',

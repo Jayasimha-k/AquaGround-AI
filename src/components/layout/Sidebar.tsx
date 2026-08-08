@@ -7,7 +7,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Map, BarChart3, TrendingUp,
   AlertTriangle, Brain, FileText, Users, Settings,
-  ChevronLeft, ChevronRight, Droplets, LogOut, User, Sparkles,
+  ChevronLeft, ChevronRight, Droplets, LogOut, User, Sparkles, Waves,
 } from 'lucide-react';
 import { animate } from 'animejs';
 import { useApp } from '@/contexts/AppContext';
@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/Button';
 
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string; color?: string }>> = {
-  LayoutDashboard, Map, BarChart3, TrendingUp,
+  LayoutDashboard, Map, Waves, BarChart3, TrendingUp,
   AlertTriangle, Brain, FileText, Users, Settings,
 };
 
@@ -35,6 +35,7 @@ export function Sidebar() {
   const primaryItems = [
     { id: 'dashboard',       label: t('nav_dashboard', 'Operations Center'),       path: '/',               icon: 'LayoutDashboard' },
     { id: 'map',             label: t('nav_map', 'Operations Map'),                path: '/map',             icon: 'Map' },
+    { id: 'water-sources',   label: t('nav_water_sources', 'Water Resources Advisory'), path: '/water-sources', icon: 'Waves' },
     { id: 'analytics',       label: t('nav_analytics', 'Resource Intel'),            path: '/analytics',       icon: 'BarChart3' },
     { id: 'predictions',     label: t('nav_predictions', 'Predictions'),             path: '/predictions',     icon: 'TrendingUp' },
     { id: 'risk',            label: t('nav_risk', 'Risk Monitor'),                  path: '/risk',            icon: 'AlertTriangle' },

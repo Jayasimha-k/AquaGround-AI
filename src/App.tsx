@@ -5,6 +5,7 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Dashboard } from '@/pages/Dashboard';
 import { MapPage } from '@/pages/MapPage';
+import { WaterSources } from '@/pages/WaterSources';
 import { Analytics } from '@/pages/Analytics';
 import { Predictions } from '@/pages/Predictions';
 import { RiskAssessment } from '@/pages/RiskAssessment';
@@ -27,6 +28,7 @@ function ProtectedApp() {
       <Route element={<AppLayout />}>
         <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
         <Route path={ROUTES.MAP} element={<MapPage />} />
+        <Route path={ROUTES.WATER_SOURCES} element={<WaterSources />} />
         <Route path={ROUTES.ANALYTICS} element={<Analytics />} />
         <Route path={ROUTES.PREDICTIONS} element={<Predictions />} />
         <Route path={ROUTES.RISK} element={<RiskAssessment />} />
